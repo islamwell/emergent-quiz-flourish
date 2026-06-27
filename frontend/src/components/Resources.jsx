@@ -42,7 +42,7 @@ const Resources = () => {
                 onClick={() => handleClick(r.title)}
                 className="group text-left rounded-3xl bg-card border border-border p-7 hover:border-primary/30 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300"
               >
-                <span className="flex h-13 w-13 items-center justify-center rounded-2xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
                   {Icon && <Icon className="h-6 w-6" />}
                 </span>
                 <h3 className="mt-5 font-display text-xl font-semibold text-foreground">{r.title}</h3>

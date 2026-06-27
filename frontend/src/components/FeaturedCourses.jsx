@@ -1,5 +1,6 @@
 import React from "react";
 import { ArrowUpRight, Clock, CalendarDays, Globe } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { courses, images } from "../mock";
@@ -28,7 +29,7 @@ const FeaturedCourses = () => {
               key={c.id}
               className="group rounded-3xl overflow-hidden bg-card border border-border hover:shadow-2xl hover:shadow-emerald-900/10 hover:-translate-y-1.5 transition-all duration-400"
             >
-              <div className="relative h-52 overflow-hidden">
+              <Link to={`/courses/${c.id}`} className="block relative h-52 overflow-hidden">
                 <img
                   src={images[c.image]}
                   alt={c.title}
@@ -41,7 +42,7 @@ const FeaturedCourses = () => {
                 <span className="absolute bottom-4 left-4 text-white text-xs font-medium bg-white/15 backdrop-blur-md rounded-full px-3 py-1 border border-white/20">
                   {c.level}
                 </span>
-              </div>
+              </Link>
 
               <div className="p-6">
                 <h3 className="font-display text-2xl font-semibold text-foreground">{c.title}</h3>
@@ -55,9 +56,11 @@ const FeaturedCourses = () => {
                   <span className="inline-flex items-center gap-1.5 col-span-2"><CalendarDays className="h-3.5 w-3.5 text-primary" />Starts {c.start}</span>
                 </div>
 
-                <Button variant="ghost" className="mt-5 w-full justify-between rounded-xl border border-border group-hover:border-primary/40 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-                  Enroll Now
-                  <ArrowUpRight className="h-4 w-4" />
+                <Button variant="ghost" className="mt-5 w-full justify-between rounded-xl border border-border group-hover:border-primary/40 group-hover:bg-primary group-hover:text-primary-foreground transition-all" asChild>
+                  <Link to={`/courses/${c.id}`}>
+                    View Course
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
                 </Button>
               </div>
             </article>

@@ -1,5 +1,6 @@
 import React from "react";
 import { Moon, Mail, Phone, Facebook, Instagram, Youtube } from "lucide-react";
+import { Link } from "react-router-dom";
 import { navLinks, footer } from "../mock";
 
 const Footer = () => {
@@ -36,9 +37,9 @@ const Footer = () => {
             <ul className="mt-4 space-y-2.5">
               {navLinks.map((l) => (
                 <li key={l.label}>
-                  <a href={l.href} className="text-sm text-primary-foreground/70 hover:text-accent transition-colors">
+                  <Link to={l.to} className="text-sm text-primary-foreground/70 hover:text-accent transition-colors">
                     {l.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

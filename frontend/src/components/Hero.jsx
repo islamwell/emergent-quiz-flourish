@@ -1,5 +1,6 @@
 import React from "react";
 import { ArrowRight, PlayCircle, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { images, ayah } from "../mock";
 
@@ -40,16 +41,16 @@ const Hero = () => {
 
           <div className="mt-9 flex flex-col sm:flex-row gap-4">
             <Button size="lg" className="rounded-full bg-accent hover:bg-accent/90 text-accent-foreground px-7 h-13 text-base shadow-lg group" asChild>
-              <a href="#courses">
+              <Link to="/courses">
                 Explore Courses
                 <ArrowRight className="ml-1.5 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </a>
+              </Link>
             </Button>
             <Button size="lg" variant="outline" className="rounded-full bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white px-7 h-13 text-base backdrop-blur-md" asChild>
-              <a href="#about">
+              <Link to="/about">
                 <PlayCircle className="mr-1.5 h-5 w-5" />
                 Our Story
-              </a>
+              </Link>
             </Button>
           </div>
 

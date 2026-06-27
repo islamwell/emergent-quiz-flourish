@@ -29,12 +29,12 @@ export const images = {
 };
 
 export const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "Courses", href: "#courses" },
-  { label: "What We Teach", href: "#subjects" },
-  { label: "About", href: "#about" },
-  { label: "Resources", href: "#resources" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", to: "/" },
+  { label: "Courses", to: "/courses" },
+  { label: "Kids", to: "/kids" },
+  { label: "About", to: "/about" },
+  { label: "Resources", to: "/resources" },
+  { label: "Contact", to: "/contact" },
 ];
 
 export const subjects = [
@@ -239,3 +239,178 @@ export const footer = {
   phone: "+47 45 84 70 09",
   tagline: "Enlighten Your Lives with the Nur of Al Quran",
 };
+
+// Extended per-course content for the detail pages
+export const courseExtras = {
+  "sabeel-ul-jannah": {
+    longDesc:
+      "Sabeel Ul Jannah is our flagship journey \u2014 a structured 2.5 year program that walks you through detailed Tafseer, the blessed Seerah and deep character building. It is designed to transform not just your knowledge, but your heart and daily life.",
+    instructor: "Senior Faculty Team",
+    days: "Tue \u2022 Thu",
+    time: "Morning & Evening slots",
+    fee: "From $50 / semester",
+    modules: [
+      "Detailed word-by-word Tafseer of selected Surahs",
+      "Seerah of the Prophet \u00b7 with practical lessons",
+      "Foundations of Arabic for Quranic understanding",
+      "Character building & spiritual purification",
+    ],
+    outcomes: [
+      "Understand the Quran with depth and context",
+      "Build a consistent connection with Allah",
+      "Apply prophetic guidance to modern life",
+    ],
+  },
+  "nurun-ala-nur": {
+    longDesc:
+      "NurunAlaNur \u2014 light upon light \u2014 is an in-depth Tafseer program covering the Makki and Madani Surahs of the Holy Quran, revealing the timeless wisdom within every verse.",
+    instructor: "Tafseer Faculty",
+    days: "Mon \u2022 Wed",
+    time: "Evening slot",
+    fee: "From $40 / semester",
+    modules: [
+      "Asbab al-Nuzul \u2014 reasons of revelation",
+      "Makki vs Madani themes and structure",
+      "Linguistic miracles of the Quran",
+      "Practical reflections (tadabbur)",
+    ],
+    outcomes: [
+      "Grasp the deeper meanings of revelation",
+      "Recognise the coherence of the Quran",
+      "Reflect and act upon each verse",
+    ],
+  },
+  "ramadan-2026": {
+    longDesc:
+      "A focused one-month program to prepare your heart and home for the blessed month of Ramadan, with daily lessons, essential duas and a practical worship checklist.",
+    instructor: "Guest Scholars",
+    days: "Daily (short sessions)",
+    time: "Early morning",
+    fee: "Free / Donation",
+    modules: [
+      "Fiqh of fasting made simple",
+      "Daily duas and adhkar",
+      "Last ten nights game plan",
+      "Worship & charity checklist",
+    ],
+    outcomes: [
+      "Enter Ramadan with clarity and intention",
+      "Maximise reward in the blessed month",
+      "Build habits that last beyond Ramadan",
+    ],
+  },
+  "kids-course": {
+    longDesc:
+      "A joyful, interactive course crafted for young hearts (ages 5\u201312). Through stories, activities and gentle guidance, children learn Quran basics, beautiful duas and the Seerah.",
+    instructor: "Kids Faculty",
+    days: "Sat \u2022 Sun",
+    time: "Weekend mornings",
+    fee: "From $25 / term",
+    modules: [
+      "Quranic Arabic letters & short Surahs",
+      "Everyday Masnoon duas",
+      "Stories from the Seerah",
+      "Good manners (Akhlaq) & kindness",
+    ],
+    outcomes: [
+      "Love for the Quran from an early age",
+      "Confidence in recitation and duas",
+      "Strong moral foundation",
+    ],
+  },
+  "seerah-2026": {
+    longDesc:
+      "A one-year journey through the blessed biography of the Prophet \u00b7 \u2014 from his noble lineage to the everlasting legacy of his message, with lessons for every stage of life.",
+    instructor: "Seerah Faculty",
+    days: "Fri",
+    time: "Evening slot",
+    fee: "From $35 / semester",
+    modules: [
+      "The Makkan period & early da'wah",
+      "The Hijrah and the Madinan society",
+      "Battles, treaties and mercy",
+      "The final sermon and legacy",
+    ],
+    outcomes: [
+      "Know the life of the Prophet \u00b7 in detail",
+      "Draw timeless lessons for today",
+      "Strengthen love for the Messenger \u00b7",
+    ],
+  },
+  "al-lulu-wal-marjaan": {
+    longDesc:
+      "An advanced study of the agreed-upon ahadith of Bukhari and Muslim, paired with practical guidance on managing life's crises with patience and trust in Allah.",
+    instructor: "Hadith Faculty",
+    days: "Tue \u2022 Sat",
+    time: "Evening slot",
+    fee: "From $45 / semester",
+    modules: [
+      "Authentication and the science of Hadith",
+      "Selected agreed-upon narrations",
+      "Crisis & life management from the Sunnah",
+      "Practical application workshops",
+    ],
+    outcomes: [
+      "Engage with authentic Hadith confidently",
+      "Navigate hardship with prophetic wisdom",
+      "Apply the Sunnah in daily decisions",
+    ],
+  },
+};
+
+// About page content
+export const aboutValues = [
+  { title: "Authenticity", desc: "Knowledge grounded purely in the Quran and authentic Sunnah." },
+  { title: "Sincerity", desc: "Seeking only the pleasure of Allah in all that we teach and do." },
+  { title: "Accessibility", desc: "Beautiful, structured learning for every age, place and pace." },
+  { title: "Goodness", desc: "Encouraging kindness, gratitude and service in our community." },
+];
+
+export const milestones = [
+  { year: "2008", title: "A humble beginning", desc: "NurulQuran is founded with a single Tafseer circle." },
+  { year: "2013", title: "Going global", desc: "Online classes connect students across continents." },
+  { year: "2019", title: "Kids & families", desc: "Dedicated programs launched for children and mothers." },
+  { year: "2026", title: "A growing light", desc: "Hundreds of thousands enlightened across 120+ countries." },
+];
+
+// Kids page content
+export const kidsFeatures = [
+  { title: "Story-based learning", desc: "Lessons brought to life through engaging prophetic stories." },
+  { title: "Bite-sized classes", desc: "Short, joyful sessions perfectly paced for young minds." },
+  { title: "Duas & manners", desc: "Everyday duas and beautiful Islamic manners (akhlaq)." },
+  { title: "Caring teachers", desc: "Patient, encouraging guides who make learning a delight." },
+];
+
+export const kidsLevels = [
+  { name: "Little Sprouts", age: "Ages 5\u20137", desc: "Quranic letters, short Surahs and simple duas." },
+  { name: "Growing Gardens", age: "Ages 8\u201310", desc: "Reading fluency, Seerah stories and good manners." },
+  { name: "Bright Stars", age: "Ages 11\u201312", desc: "Tajweed basics, meanings and character building." },
+];
+
+// Resources page
+export const readingMaterial = [
+  { title: "Tafheem-us-Sunnah", desc: "A companion series unpacking the Sunnah with clarity." },
+  { title: "Tafseer Workbooks", desc: "Guided notes and reflections for every Tafseer module." },
+  { title: "Dua Collections", desc: "Masnoon and Quranic supplications for daily life." },
+  { title: "Seerah Reader", desc: "An accessible journey through the prophetic biography." },
+];
+
+// Contact page
+export const faqs = [
+  {
+    q: "How do I enroll in a course?",
+    a: "Simply choose a course, fill the registration form and you'll receive joining details by email before the intake begins.",
+  },
+  {
+    q: "Are the classes live or recorded?",
+    a: "Most courses include live interactive sessions with Q&A, and recordings are shared so you never miss a lesson.",
+  },
+  {
+    q: "Is there a fee?",
+    a: "NurulQuran is a non-profit. Many resources are free; structured courses have modest fees that vary by country.",
+  },
+  {
+    q: "What languages are courses offered in?",
+    a: "Courses are offered primarily in English, with several programs available in Urdu as well.",
+  },
+];
