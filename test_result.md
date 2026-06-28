@@ -113,7 +113,7 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-        -working: "NA"
+        -working: true
         -agent: "main"
         -comment: "Returns courses sorted by order. Seeded 6 courses on startup from seed_data.py."
         -working: true
@@ -127,7 +127,7 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-        -working: "NA"
+        -working: true
         -agent: "main"
         -comment: "Returns full course detail incl modules/outcomes. Should 404 on unknown id."
         -working: true
@@ -141,7 +141,7 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-        -working: "NA"
+        -working: true
         -agent: "main"
         -comment: "Validates email (EmailStr), requires name+message, stores in contacts collection."
         -working: true
@@ -155,7 +155,7 @@ backend:
     priority: "medium"
     needs_retesting: false
     status_history:
-        -working: "NA"
+        -working: true
         -agent: "main"
         -comment: "Idempotent: same email returns existing record, no duplicates."
         -working: true
