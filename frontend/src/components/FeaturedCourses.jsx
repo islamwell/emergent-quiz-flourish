@@ -1,11 +1,22 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ArrowUpRight, Clock, CalendarDays, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { courses, images } from "../mock";
+import { images } from "../mock";
+import { getCourses } from "../lib/api";
 
 const FeaturedCourses = () => {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getCourses()
+      .then((data) => setCourses(data))
+      .catch(() => setCourses([]))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <section id="courses" className="relative py-24 sm:py-32 bg-background">
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
@@ -23,6 +34,13 @@ const FeaturedCourses = () => {
           </p>
         </div>
 
+        {loading ? (
+          <div className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-7">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="rounded-3xl border border-border bg-secondary/40 h-[420px] animate-pulse" />
+            ))}
+          </div>
+        ) : (
         <div className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-7">
           {courses.map((c) => (
             <article
@@ -66,6 +84,7 @@ const FeaturedCourses = () => {
             </article>
           ))}
         </div>
+        )}
       </div>
     </section>
   );

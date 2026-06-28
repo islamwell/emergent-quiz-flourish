@@ -1,15 +1,25 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Clock, CalendarDays, Globe } from "lucide-react";
 import PageHero from "../components/PageHero";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { courses, images } from "../mock";
-
-const categories = ["All", ...Array.from(new Set(courses.map((c) => c.tag)))];
+import { images } from "../mock";
+import { getCourses } from "../lib/api";
 
 const Courses = () => {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [active, setActive] = useState("All");
+
+  useEffect(() => {
+    getCourses()
+      .then((data) => setCourses(data))
+      .catch(() => setCourses([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const categories = ["All", ...Array.from(new Set(courses.map((c) => c.tag)))];
   const filtered = active === "All" ? courses : courses.filter((c) => c.tag === active);
 
   return (
@@ -41,7 +51,11 @@ const Courses = () => {
           </div>
 
           <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-7">
-            {filtered.map((c) => (
+            {loading
+              ? [...Array(6)].map((_, i) => (
+                  <div key={i} className="rounded-3xl border border-border bg-secondary/40 h-[420px] animate-pulse" />
+                ))
+              : filtered.map((c) => (
               <article
                 key={c.id}
                 className="group rounded-3xl overflow-hidden bg-card border border-border hover:shadow-2xl hover:shadow-emerald-900/10 hover:-translate-y-1.5 transition-all duration-400"

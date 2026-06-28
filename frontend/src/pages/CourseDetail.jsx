@@ -1,19 +1,38 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { CheckCircle2, Clock, CalendarDays, Globe, User, BadgeCheck, ArrowLeft, ArrowRight } from "lucide-react";
 import PageHero from "../components/PageHero";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { courses, courseExtras, images } from "../mock";
+import { images } from "../mock";
+import { getCourse, createEnrollment } from "../lib/api";
 import { useToast } from "../hooks/use-toast";
 
 const CourseDetail = () => {
   const { id } = useParams();
   const { toast } = useToast();
-  const course = courses.find((c) => c.id === id);
-  const extra = courseExtras[id];
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  if (!course) {
+  useEffect(() => {
+    setLoading(true);
+    setError(false);
+    getCourse(id)
+      .then((data) => setCourse(data))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <div className="h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !course) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-5">
         <h1 className="font-display text-4xl font-semibold text-foreground">Course not found</h1>
@@ -23,11 +42,16 @@ const CourseDetail = () => {
     );
   }
 
-  const handleEnroll = () => {
-    toast({
-      title: `Enrolled interest: ${course.title}`,
-      description: "This is a preview — we'll connect this to real registration soon, inshaAllah.",
-    });
+  const handleEnroll = async () => {
+    try {
+      await createEnrollment({ course_id: course.id, course_title: course.title });
+      toast({
+        title: `Interest registered for ${course.title}`,
+        description: "JazakAllah Khair! Our team will reach out with joining details soon, inshaAllah.",
+      });
+    } catch (e) {
+      toast({ title: "Something went wrong", description: "Please try again in a moment.", variant: "destructive" });
+    }
   };
 
   return (
@@ -49,11 +73,11 @@ const CourseDetail = () => {
             </Link>
 
             <h2 className="font-display text-3xl font-semibold text-foreground mt-6">About this course</h2>
-            <p className="mt-4 text-lg text-muted-foreground leading-relaxed">{extra?.longDesc || course.desc}</p>
+            <p className="mt-4 text-lg text-muted-foreground leading-relaxed">{course.longDesc || course.desc}</p>
 
             <h3 className="font-display text-2xl font-semibold text-foreground mt-12">What you'll study</h3>
             <div className="mt-5 grid sm:grid-cols-2 gap-3">
-              {(extra?.modules || []).map((m, i) => (
+              {(course.modules || []).map((m, i) => (
                 <div key={i} className="flex gap-3 rounded-2xl bg-secondary/50 border border-border p-4">
                   <span className="font-display text-lg font-semibold text-accent shrink-0">{String(i + 1).padStart(2, "0")}</span>
                   <p className="text-sm text-foreground/85">{m}</p>
@@ -63,7 +87,7 @@ const CourseDetail = () => {
 
             <h3 className="font-display text-2xl font-semibold text-foreground mt-12">By the end, you will</h3>
             <ul className="mt-5 space-y-3">
-              {(extra?.outcomes || []).map((o, i) => (
+              {(course.outcomes || []).map((o, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <span className="text-foreground/85">{o}</span>
@@ -81,13 +105,13 @@ const CourseDetail = () => {
                 <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground border-0 rounded-full">{course.level}</Badge>
               </div>
               <div className="p-6">
-                <p className="font-display text-2xl font-semibold text-primary">{extra?.fee || "Contact for fee"}</p>
+                <p className="font-display text-2xl font-semibold text-primary">{course.fee || "Contact for fee"}</p>
                 <ul className="mt-5 space-y-3.5 text-sm">
                   <li className="flex items-center gap-3 text-foreground/80"><Clock className="h-4 w-4 text-primary" />Duration: {course.duration}</li>
                   <li className="flex items-center gap-3 text-foreground/80"><CalendarDays className="h-4 w-4 text-primary" />Starts: {course.start}</li>
                   <li className="flex items-center gap-3 text-foreground/80"><Globe className="h-4 w-4 text-primary" />Language: {course.language}</li>
-                  <li className="flex items-center gap-3 text-foreground/80"><User className="h-4 w-4 text-primary" />{extra?.instructor || "NurulQuran Faculty"}</li>
-                  <li className="flex items-center gap-3 text-foreground/80"><BadgeCheck className="h-4 w-4 text-primary" />{extra?.days} • {extra?.time}</li>
+                  <li className="flex items-center gap-3 text-foreground/80"><User className="h-4 w-4 text-primary" />{course.instructor || "NurulQuran Faculty"}</li>
+                  <li className="flex items-center gap-3 text-foreground/80"><BadgeCheck className="h-4 w-4 text-primary" />{course.days} • {course.time}</li>
                 </ul>
                 <Button onClick={handleEnroll} className="mt-6 w-full rounded-full bg-primary hover:bg-primary/90 h-12 shadow-md">
                   Enroll Now <ArrowRight className="ml-1.5 h-4 w-4" />

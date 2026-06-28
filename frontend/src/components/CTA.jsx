@@ -3,26 +3,36 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { images } from "../mock";
+import { subscribeNewsletter } from "../lib/api";
 import { useToast } from "../hooks/use-toast";
 
 const CTA = () => {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !email.includes("@")) {
       toast({ title: "Please enter a valid email", variant: "destructive" });
       return;
     }
-    setDone(true);
-    toast({
-      title: "JazakAllah Khair!",
-      description: "You're on the list. We'll reach out with the next intake details.",
-    });
-    setEmail("");
-    setTimeout(() => setDone(false), 4000);
+    setSubmitting(true);
+    try {
+      await subscribeNewsletter(email);
+      setDone(true);
+      toast({
+        title: "JazakAllah Khair!",
+        description: "You're on the list. We'll reach out with the next intake details.",
+      });
+      setEmail("");
+      setTimeout(() => setDone(false), 4000);
+    } catch (err) {
+      toast({ title: "Something went wrong", description: "Please try again in a moment.", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -49,14 +59,14 @@ const CTA = () => {
                 placeholder="your@email.com"
                 className="h-12 rounded-full bg-white/95 border-0 px-5 text-foreground placeholder:text-muted-foreground focus-visible:ring-accent"
               />
-              <Button type="submit" className="h-12 rounded-full bg-accent hover:bg-accent/90 text-accent-foreground px-7 shrink-0 shadow-lg">
+              <Button type="submit" disabled={submitting} className="h-12 rounded-full bg-accent hover:bg-accent/90 text-accent-foreground px-7 shrink-0 shadow-lg disabled:opacity-70">
                 {done ? (
                   <>
                     <CheckCircle2 className="mr-1.5 h-5 w-5" /> Joined
                   </>
                 ) : (
                   <>
-                    Get Started
+                    {submitting ? "Sending..." : "Get Started"}
                     <ArrowRight className="ml-1.5 h-5 w-5" />
                   </>
                 )}

@@ -12,25 +12,35 @@ import {
   AccordionTrigger,
 } from "../components/ui/accordion";
 import { images, footer, faqs } from "../mock";
+import { submitContact } from "../lib/api";
 import { useToast } from "../hooks/use-toast";
 
 const Contact = () => {
   const { toast } = useToast();
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+  const [submitting, setSubmitting] = useState(false);
 
   const update = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name || !form.email.includes("@") || !form.message) {
       toast({ title: "Please complete all fields", variant: "destructive" });
       return;
     }
-    toast({
-      title: "JazakAllah Khair!",
-      description: "Your message has been received. We'll get back to you soon, inshaAllah.",
-    });
-    setForm({ name: "", email: "", subject: "", message: "" });
+    setSubmitting(true);
+    try {
+      await submitContact(form);
+      toast({
+        title: "JazakAllah Khair!",
+        description: "Your message has been received. We'll get back to you soon, inshaAllah.",
+      });
+      setForm({ name: "", email: "", subject: "", message: "" });
+    } catch (err) {
+      toast({ title: "Something went wrong", description: "Please try again in a moment.", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const contactItems = [
@@ -94,8 +104,8 @@ const Contact = () => {
                 <Label htmlFor="message">Message</Label>
                 <Textarea id="message" value={form.message} onChange={update("message")} placeholder="Write your message..." className="min-h-[140px] rounded-xl resize-none" />
               </div>
-              <Button type="submit" className="mt-6 rounded-full bg-primary hover:bg-primary/90 px-8 h-12 shadow-md">
-                Send Message <Send className="ml-1.5 h-4 w-4" />
+              <Button type="submit" disabled={submitting} className="mt-6 rounded-full bg-primary hover:bg-primary/90 px-8 h-12 shadow-md disabled:opacity-70">
+                {submitting ? "Sending..." : "Send Message"} <Send className="ml-1.5 h-4 w-4" />
               </Button>
             </form>
           </div>
