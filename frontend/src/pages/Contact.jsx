@@ -13,10 +13,12 @@ import {
 } from "../components/ui/accordion";
 import { images, footer, faqs } from "../mock";
 import { submitContact } from "../lib/api";
+import { useSiteContent } from "../context/SiteContentContext";
 import { useToast } from "../hooks/use-toast";
 
 const Contact = () => {
   const { toast } = useToast();
+  const { faqs: liveFaqs, contact } = useSiteContent();
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [submitting, setSubmitting] = useState(false);
 
@@ -44,9 +46,9 @@ const Contact = () => {
   };
 
   const contactItems = [
-    { icon: Mail, label: "Email", value: footer.email },
-    { icon: Phone, label: "Phone", value: footer.phone },
-    { icon: MapPin, label: "Office", value: "Oslo, Norway (Global online)" },
+    { icon: Mail, label: "Email", value: contact.email },
+    { icon: Phone, label: "Phone", value: contact.phone },
+    { icon: MapPin, label: "Office", value: contact.office },
   ];
 
   return (
@@ -120,7 +122,7 @@ const Contact = () => {
             <h2 className="font-display text-4xl sm:text-5xl font-semibold text-foreground mt-4">Frequently asked</h2>
           </div>
           <Accordion type="single" collapsible className="mt-12 space-y-3">
-            {faqs.map((f, i) => (
+            {liveFaqs.map((f, i) => (
               <AccordionItem key={i} value={`item-${i}`} className="rounded-2xl border border-border bg-card px-6">
                 <AccordionTrigger className="text-left font-medium text-foreground hover:no-underline">
                   {f.q}

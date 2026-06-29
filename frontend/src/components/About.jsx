@@ -1,6 +1,7 @@
 import React from "react";
 import { Leaf, Heart, Compass } from "lucide-react";
 import { images } from "../mock";
+import { useSiteContent } from "../context/SiteContentContext";
 
 const pillars = [
   { icon: Compass, title: "Authentic Guidance", desc: "Pure knowledge from Quran & Sunnah." },
@@ -9,6 +10,7 @@ const pillars = [
 ];
 
 const About = () => {
+  const { mission } = useSiteContent();
   return (
     <section id="about" className="relative py-24 sm:py-32 bg-background overflow-hidden">
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
@@ -30,20 +32,16 @@ const About = () => {
           {/* Text */}
           <div>
             <span className="inline-block text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-              Our Mission
+              {mission.eyebrow}
             </span>
             <h2 className="font-display text-4xl sm:text-5xl font-semibold text-foreground mt-4 leading-[1.1]">
-              Reconnecting hearts with their Creator
+              {mission.title}
             </h2>
             <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-              NurulQuran is a non-profit institute dedicated to making authentic Islamic
-              knowledge accessible, beautiful and transformative. We teach the Quran with
-              understanding — not just recitation — so that every verse becomes a source of
-              light, peace and goodness in your daily life.
+              {mission.paragraph1}
             </p>
             <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
-              From the youngest learners to lifelong students, our serene, structured programs
-              encourage goodness, gratitude and a deeper connection to the divine.
+              {mission.paragraph2}
             </p>
 
             <div className="mt-10 grid sm:grid-cols-3 gap-5">

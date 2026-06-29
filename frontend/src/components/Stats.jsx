@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { images, stats } from "../mock";
+import { images } from "../mock";
+import { useSiteContent } from "../context/SiteContentContext";
 
 const Stats = () => {
+  const { stats } = useSiteContent();
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
 

@@ -1,6 +1,14 @@
 // Mock data for NurulQuran redesign — sourced/adapted from nurulquran.com
 // NOTE: This is MOCK data for the frontend-only preview.
 
+// Resolve a course/media image: full URL passes through, otherwise look up key.
+export const resolveImage = (key) => {
+  if (!key) return undefined;
+  if (typeof key === "string" && key.startsWith("http")) return key;
+  return images[key];
+};
+
+
 export const images = {
   heroValley:
     "https://images.unsplash.com/photo-1535025075092-5a1cf795130b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA0MTJ8MHwxfHNlYXJjaHw0fHxtaXN0eSUyMGdyZWVuJTIwdmFsbGV5fGVufDB8fHx8MTc4MjQ1MTAzN3ww&ixlib=rb-4.1.0&q=85",

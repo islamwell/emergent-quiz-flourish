@@ -1,9 +1,12 @@
 import React from "react";
 import { Moon, Mail, Phone, Facebook, Instagram, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
-import { navLinks, footer } from "../mock";
+import { navLinks } from "../mock";
+import { useSiteContent } from "../context/SiteContentContext";
 
 const Footer = () => {
+  const { contact } = useSiteContent();
+  const footer = { tagline: contact.tagline, email: contact.email, phone: contact.phone };
   return (
     <footer className="bg-primary text-primary-foreground">
       <div className="max-w-7xl mx-auto px-5 sm:px-8 py-16">

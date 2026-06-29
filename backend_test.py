@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Backend API tests for NurulQuran FastAPI application.
-Tests all endpoints: courses, contact, newsletter, enrollments.
+Tests all endpoints: courses, contact, newsletter, enrollments, admin endpoints.
 """
 
 import requests
@@ -10,6 +10,13 @@ from datetime import datetime
 
 # Base URL from frontend/.env
 BASE_URL = "https://quran-flourish.preview.emergentagent.com/api"
+
+# Admin credentials from backend/.env
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "NurulQuran@2026"
+
+# Global variable to store auth token
+AUTH_TOKEN = None
 
 def print_test_header(test_name):
     """Print a formatted test header."""
@@ -447,6 +454,713 @@ def test_post_enrollments_optional_fields():
         print_result(False, f"Exception occurred: {str(e)}")
         return False
 
+# ==================== ADMIN AUTH TESTS ====================
+
+def test_auth_login_success():
+    """Test POST /api/auth/login with correct credentials."""
+    global AUTH_TOKEN
+    print_test_header("POST /api/auth/login - Correct credentials")
+    
+    try:
+        payload = {
+            "username": ADMIN_USERNAME,
+            "password": ADMIN_PASSWORD
+        }
+        
+        response = requests.post(f"{BASE_URL}/auth/login", json=payload, timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print_result(False, f"Expected status 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        result = response.json()
+        
+        # Verify response has access_token
+        if 'access_token' not in result:
+            print_result(False, "Response missing 'access_token' field")
+            return False
+        
+        if 'token_type' not in result:
+            print_result(False, "Response missing 'token_type' field")
+            return False
+        
+        if result['token_type'] != 'bearer':
+            print_result(False, f"Expected token_type 'bearer', got '{result['token_type']}'")
+            return False
+        
+        # Store token for subsequent tests
+        AUTH_TOKEN = result['access_token']
+        
+        print(f"Access token received: {AUTH_TOKEN[:20]}...")
+        print_result(True, "Login successful with access_token")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+def test_auth_login_wrong_password():
+    """Test POST /api/auth/login with wrong password."""
+    print_test_header("POST /api/auth/login - Wrong password")
+    
+    try:
+        payload = {
+            "username": ADMIN_USERNAME,
+            "password": "WrongPassword123"
+        }
+        
+        response = requests.post(f"{BASE_URL}/auth/login", json=payload, timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 401:
+            print_result(False, f"Expected status 401, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        print_result(True, "Wrong password correctly returns 401")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+def test_auth_me_without_token():
+    """Test GET /api/auth/me without token."""
+    print_test_header("GET /api/auth/me - Without token")
+    
+    try:
+        response = requests.get(f"{BASE_URL}/auth/me", timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code not in [401, 403]:
+            print_result(False, f"Expected status 401 or 403, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        print_result(True, f"Without token correctly returns {response.status_code}")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+def test_auth_me_with_token():
+    """Test GET /api/auth/me with valid Bearer token."""
+    print_test_header("GET /api/auth/me - With valid token")
+    
+    try:
+        if not AUTH_TOKEN:
+            print_result(False, "No auth token available (login test may have failed)")
+            return False
+        
+        headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+        response = requests.get(f"{BASE_URL}/auth/me", headers=headers, timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print_result(False, f"Expected status 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        result = response.json()
+        
+        if 'username' not in result:
+            print_result(False, "Response missing 'username' field")
+            return False
+        
+        if result['username'] != ADMIN_USERNAME:
+            print_result(False, f"Expected username '{ADMIN_USERNAME}', got '{result['username']}'")
+            return False
+        
+        print(f"Authenticated as: {result['username']}")
+        print_result(True, "Valid token returns correct username")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+# ==================== ADMIN COURSES TESTS ====================
+
+def test_admin_courses_create():
+    """Test POST /api/admin/courses with token."""
+    print_test_header("POST /api/admin/courses - Create course")
+    
+    try:
+        if not AUTH_TOKEN:
+            print_result(False, "No auth token available")
+            return False, None
+        
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        payload = {
+            "title": f"Test Course X {timestamp}",
+            "desc": "Test course description",
+            "modules": ["Module 1", "Module 2"],
+            "outcomes": ["Outcome 1", "Outcome 2"]
+        }
+        
+        headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+        response = requests.post(f"{BASE_URL}/admin/courses", json=payload, headers=headers, timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print_result(False, f"Expected status 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False, None
+        
+        result = response.json()
+        
+        # Verify response has auto-generated id
+        if 'id' not in result:
+            print_result(False, "Response missing 'id' field")
+            return False, None
+        
+        # Verify response has order
+        if 'order' not in result:
+            print_result(False, "Response missing 'order' field")
+            return False, None
+        
+        course_id = result['id']
+        print(f"Course created with ID: {course_id}, order: {result['order']}")
+        print_result(True, "Course created successfully with auto-generated id and order")
+        return True, course_id
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False, None
+
+def test_admin_courses_verify_in_list(course_id):
+    """Verify created course appears in GET /api/courses."""
+    print_test_header("GET /api/courses - Verify new course appears")
+    
+    try:
+        if not course_id:
+            print_result(False, "No course_id provided")
+            return False
+        
+        response = requests.get(f"{BASE_URL}/courses", timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print_result(False, f"Expected status 200, got {response.status_code}")
+            return False
+        
+        courses = response.json()
+        course_ids = [c['id'] for c in courses]
+        
+        if course_id not in course_ids:
+            print_result(False, f"Course {course_id} not found in courses list")
+            return False
+        
+        print(f"Course {course_id} found in courses list")
+        print_result(True, "New course appears in public courses list")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+def test_admin_courses_update(course_id):
+    """Test PUT /api/admin/courses/{id} with token."""
+    print_test_header("PUT /api/admin/courses/{id} - Update course")
+    
+    try:
+        if not AUTH_TOKEN or not course_id:
+            print_result(False, "No auth token or course_id available")
+            return False
+        
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        payload = {
+            "title": f"Test Course X Updated {timestamp}",
+            "desc": "Updated description",
+            "modules": ["Updated Module 1"],
+            "outcomes": ["Updated Outcome 1"]
+        }
+        
+        headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+        response = requests.put(f"{BASE_URL}/admin/courses/{course_id}", json=payload, headers=headers, timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print_result(False, f"Expected status 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        result = response.json()
+        
+        # Verify title was updated
+        if result['title'] != payload['title']:
+            print_result(False, f"Title not updated. Expected '{payload['title']}', got '{result['title']}'")
+            return False
+        
+        print(f"Course {course_id} updated successfully")
+        print_result(True, "Course updated successfully")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+def test_admin_courses_delete(course_id):
+    """Test DELETE /api/admin/courses/{id} with token."""
+    print_test_header("DELETE /api/admin/courses/{id} - Delete course")
+    
+    try:
+        if not AUTH_TOKEN or not course_id:
+            print_result(False, "No auth token or course_id available")
+            return False
+        
+        headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+        response = requests.delete(f"{BASE_URL}/admin/courses/{course_id}", headers=headers, timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print_result(False, f"Expected status 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        print(f"Course {course_id} deleted successfully")
+        print_result(True, "Course deleted successfully")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+def test_admin_courses_verify_404(course_id):
+    """Verify deleted course returns 404."""
+    print_test_header("GET /api/courses/{id} - Verify 404 after deletion")
+    
+    try:
+        if not course_id:
+            print_result(False, "No course_id provided")
+            return False
+        
+        response = requests.get(f"{BASE_URL}/courses/{course_id}", timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 404:
+            print_result(False, f"Expected status 404, got {response.status_code}")
+            return False
+        
+        print_result(True, "Deleted course correctly returns 404")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+def test_admin_courses_without_token():
+    """Test admin courses endpoints without token."""
+    print_test_header("Admin Courses - Without token (POST/PUT/DELETE)")
+    
+    try:
+        all_passed = True
+        
+        # Test POST without token
+        payload = {"title": "Test", "desc": "Test"}
+        response = requests.post(f"{BASE_URL}/admin/courses", json=payload, timeout=10)
+        print(f"POST Status Code: {response.status_code}")
+        if response.status_code not in [401, 403]:
+            print_result(False, f"POST: Expected 401/403, got {response.status_code}")
+            all_passed = False
+        else:
+            print(f"✓ POST correctly returns {response.status_code}")
+        
+        # Test PUT without token
+        response = requests.put(f"{BASE_URL}/admin/courses/test-id", json=payload, timeout=10)
+        print(f"PUT Status Code: {response.status_code}")
+        if response.status_code not in [401, 403]:
+            print_result(False, f"PUT: Expected 401/403, got {response.status_code}")
+            all_passed = False
+        else:
+            print(f"✓ PUT correctly returns {response.status_code}")
+        
+        # Test DELETE without token
+        response = requests.delete(f"{BASE_URL}/admin/courses/test-id", timeout=10)
+        print(f"DELETE Status Code: {response.status_code}")
+        if response.status_code not in [401, 403]:
+            print_result(False, f"DELETE: Expected 401/403, got {response.status_code}")
+            all_passed = False
+        else:
+            print(f"✓ DELETE correctly returns {response.status_code}")
+        
+        if all_passed:
+            print_result(True, "All admin courses endpoints correctly require authentication")
+        return all_passed
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+# ==================== ADMIN MEDIA TESTS ====================
+
+def test_admin_media_create():
+    """Test POST /api/admin/media with token."""
+    print_test_header("POST /api/admin/media - Create media")
+    
+    try:
+        if not AUTH_TOKEN:
+            print_result(False, "No auth token available")
+            return False, None
+        
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        payload = {
+            "type": "audio",
+            "title": f"Test Audio {timestamp}",
+            "url": "https://example.com/test-audio.mp3",
+            "description": "Test audio description"
+        }
+        
+        headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+        response = requests.post(f"{BASE_URL}/admin/media", json=payload, headers=headers, timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print_result(False, f"Expected status 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False, None
+        
+        result = response.json()
+        
+        if 'id' not in result:
+            print_result(False, "Response missing 'id' field")
+            return False, None
+        
+        media_id = result['id']
+        print(f"Media created with ID: {media_id}")
+        print_result(True, "Media created successfully")
+        return True, media_id
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False, None
+
+def test_admin_media_verify_in_list(media_id):
+    """Verify created media appears in GET /api/media?type=audio."""
+    print_test_header("GET /api/media?type=audio - Verify new media appears")
+    
+    try:
+        if not media_id:
+            print_result(False, "No media_id provided")
+            return False
+        
+        response = requests.get(f"{BASE_URL}/media?type=audio", timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print_result(False, f"Expected status 200, got {response.status_code}")
+            return False
+        
+        media_items = response.json()
+        media_ids = [m['id'] for m in media_items]
+        
+        if media_id not in media_ids:
+            print_result(False, f"Media {media_id} not found in media list")
+            return False
+        
+        print(f"Media {media_id} found in media list")
+        print_result(True, "New media appears in public media list")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+def test_admin_media_delete(media_id):
+    """Test DELETE /api/admin/media/{id} with token."""
+    print_test_header("DELETE /api/admin/media/{id} - Delete media")
+    
+    try:
+        if not AUTH_TOKEN or not media_id:
+            print_result(False, "No auth token or media_id available")
+            return False
+        
+        headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+        response = requests.delete(f"{BASE_URL}/admin/media/{media_id}", headers=headers, timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print_result(False, f"Expected status 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        print(f"Media {media_id} deleted successfully")
+        print_result(True, "Media deleted successfully")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+def test_admin_media_without_token():
+    """Test POST /api/admin/media without token."""
+    print_test_header("POST /api/admin/media - Without token")
+    
+    try:
+        payload = {
+            "type": "audio",
+            "title": "Test",
+            "url": "https://example.com/test.mp3"
+        }
+        
+        response = requests.post(f"{BASE_URL}/admin/media", json=payload, timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code not in [401, 403]:
+            print_result(False, f"Expected 401/403, got {response.status_code}")
+            return False
+        
+        print_result(True, f"Without token correctly returns {response.status_code}")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+# ==================== ADMIN SITE CONTENT TESTS ====================
+
+def test_admin_site_content_get():
+    """Test GET /api/site-content (public)."""
+    print_test_header("GET /api/site-content - Public access")
+    
+    try:
+        response = requests.get(f"{BASE_URL}/site-content", timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print_result(False, f"Expected status 200, got {response.status_code}")
+            return False, None
+        
+        result = response.json()
+        
+        # Verify expected keys
+        expected_keys = ['hero', 'mission', 'stats', 'contact']
+        missing_keys = [k for k in expected_keys if k not in result]
+        
+        if missing_keys:
+            print_result(False, f"Missing keys: {missing_keys}")
+            return False, None
+        
+        print(f"Site content keys: {list(result.keys())}")
+        print_result(True, "Site content retrieved with expected structure")
+        return True, result
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False, None
+
+def test_admin_site_content_update(original_content):
+    """Test PUT /api/admin/site-content with token."""
+    print_test_header("PUT /api/admin/site-content - Update content")
+    
+    try:
+        if not AUTH_TOKEN or not original_content:
+            print_result(False, "No auth token or original content available")
+            return False
+        
+        # Modify the hero badge
+        updated_content = original_content.copy()
+        timestamp = datetime.now().strftime("%H%M%S")
+        updated_content['hero']['badge'] = f"Updated Badge {timestamp}"
+        
+        headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+        response = requests.put(f"{BASE_URL}/admin/site-content", json=updated_content, headers=headers, timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print_result(False, f"Expected status 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        # Verify the update by fetching again
+        verify_response = requests.get(f"{BASE_URL}/site-content", timeout=10)
+        if verify_response.status_code != 200:
+            print_result(False, "Failed to verify update")
+            return False
+        
+        verify_result = verify_response.json()
+        
+        if verify_result['hero']['badge'] != updated_content['hero']['badge']:
+            print_result(False, f"Badge not updated. Expected '{updated_content['hero']['badge']}', got '{verify_result['hero']['badge']}'")
+            return False
+        
+        print(f"Badge updated to: {verify_result['hero']['badge']}")
+        print_result(True, "Site content updated successfully")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+def test_admin_site_content_without_token():
+    """Test PUT /api/admin/site-content without token."""
+    print_test_header("PUT /api/admin/site-content - Without token")
+    
+    try:
+        payload = {"hero": {"badge": "Test"}}
+        
+        response = requests.put(f"{BASE_URL}/admin/site-content", json=payload, timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code not in [401, 403]:
+            print_result(False, f"Expected 401/403, got {response.status_code}")
+            return False
+        
+        print_result(True, f"Without token correctly returns {response.status_code}")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+# ==================== ADMIN INBOX TESTS ====================
+
+def test_admin_inbox_lists():
+    """Test GET /api/admin/contacts, /newsletter, /enrollments with token."""
+    print_test_header("Admin Inbox - GET lists (contacts/newsletter/enrollments)")
+    
+    try:
+        if not AUTH_TOKEN:
+            print_result(False, "No auth token available")
+            return False
+        
+        headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+        all_passed = True
+        
+        # Test contacts
+        response = requests.get(f"{BASE_URL}/admin/contacts", headers=headers, timeout=10)
+        print(f"GET /admin/contacts Status: {response.status_code}")
+        if response.status_code != 200:
+            print_result(False, f"Contacts: Expected 200, got {response.status_code}")
+            all_passed = False
+        else:
+            contacts = response.json()
+            print(f"✓ Contacts list retrieved ({len(contacts)} items)")
+        
+        # Test newsletter
+        response = requests.get(f"{BASE_URL}/admin/newsletter", headers=headers, timeout=10)
+        print(f"GET /admin/newsletter Status: {response.status_code}")
+        if response.status_code != 200:
+            print_result(False, f"Newsletter: Expected 200, got {response.status_code}")
+            all_passed = False
+        else:
+            newsletter = response.json()
+            print(f"✓ Newsletter list retrieved ({len(newsletter)} items)")
+        
+        # Test enrollments
+        response = requests.get(f"{BASE_URL}/admin/enrollments", headers=headers, timeout=10)
+        print(f"GET /admin/enrollments Status: {response.status_code}")
+        if response.status_code != 200:
+            print_result(False, f"Enrollments: Expected 200, got {response.status_code}")
+            all_passed = False
+        else:
+            enrollments = response.json()
+            print(f"✓ Enrollments list retrieved ({len(enrollments)} items)")
+        
+        if all_passed:
+            print_result(True, "All inbox lists retrieved successfully")
+        return all_passed
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+def test_admin_stats():
+    """Test GET /api/admin/stats with token."""
+    print_test_header("GET /api/admin/stats - Admin statistics")
+    
+    try:
+        if not AUTH_TOKEN:
+            print_result(False, "No auth token available")
+            return False
+        
+        headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+        response = requests.get(f"{BASE_URL}/admin/stats", headers=headers, timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print_result(False, f"Expected status 200, got {response.status_code}")
+            return False
+        
+        result = response.json()
+        
+        # Verify expected keys
+        expected_keys = ['courses', 'media', 'contacts', 'newsletter', 'enrollments']
+        missing_keys = [k for k in expected_keys if k not in result]
+        
+        if missing_keys:
+            print_result(False, f"Missing keys: {missing_keys}")
+            return False
+        
+        print(f"Stats: {result}")
+        print_result(True, "Admin stats retrieved with all counts")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+def test_admin_inbox_without_token():
+    """Test admin inbox endpoints without token."""
+    print_test_header("Admin Inbox - Without token")
+    
+    try:
+        all_passed = True
+        
+        endpoints = [
+            "/admin/contacts",
+            "/admin/newsletter",
+            "/admin/enrollments",
+            "/admin/stats"
+        ]
+        
+        for endpoint in endpoints:
+            response = requests.get(f"{BASE_URL}{endpoint}", timeout=10)
+            print(f"GET {endpoint} Status: {response.status_code}")
+            if response.status_code not in [401, 403]:
+                print_result(False, f"{endpoint}: Expected 401/403, got {response.status_code}")
+                all_passed = False
+            else:
+                print(f"✓ {endpoint} correctly returns {response.status_code}")
+        
+        if all_passed:
+            print_result(True, "All inbox endpoints correctly require authentication")
+        return all_passed
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+def test_admin_delete_invalid_collection():
+    """Test DELETE /api/admin/{collection}/{id} with invalid collection."""
+    print_test_header("DELETE /api/admin/badcollection/someid - Invalid collection guard")
+    
+    try:
+        if not AUTH_TOKEN:
+            print_result(False, "No auth token available")
+            return False
+        
+        headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+        response = requests.delete(f"{BASE_URL}/admin/badcollection/someid", headers=headers, timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 400:
+            print_result(False, f"Expected status 400, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        print_result(True, "Invalid collection correctly returns 400")
+        return True
+        
+    except Exception as e:
+        print_result(False, f"Exception occurred: {str(e)}")
+        return False
+
+# ==================== MAIN TEST RUNNER ====================
+
 def main():
     """Run all backend tests."""
     print("\n" + "="*80)
@@ -456,6 +1170,11 @@ def main():
     print(f"Test started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     results = {}
+    
+    # ===== PUBLIC ENDPOINTS (Original tests) =====
+    print("\n" + "="*80)
+    print("TESTING PUBLIC ENDPOINTS")
+    print("="*80)
     
     # Test GET /api/courses
     results['GET /api/courses'] = test_get_courses()
@@ -477,6 +1196,54 @@ def main():
     # Test POST /api/enrollments
     results['POST /api/enrollments - full'] = test_post_enrollments()
     results['POST /api/enrollments - optional fields'] = test_post_enrollments_optional_fields()
+    
+    # ===== ADMIN ENDPOINTS (New tests) =====
+    print("\n" + "="*80)
+    print("TESTING ADMIN ENDPOINTS")
+    print("="*80)
+    
+    # Auth tests
+    results['POST /api/auth/login - success'] = test_auth_login_success()
+    results['POST /api/auth/login - wrong password'] = test_auth_login_wrong_password()
+    results['GET /api/auth/me - without token'] = test_auth_me_without_token()
+    results['GET /api/auth/me - with token'] = test_auth_me_with_token()
+    
+    # Admin Courses tests
+    course_created, course_id = test_admin_courses_create()
+    results['POST /api/admin/courses'] = course_created
+    
+    if course_id:
+        results['GET /api/courses - verify new course'] = test_admin_courses_verify_in_list(course_id)
+        results['PUT /api/admin/courses/{id}'] = test_admin_courses_update(course_id)
+        results['DELETE /api/admin/courses/{id}'] = test_admin_courses_delete(course_id)
+        results['GET /api/courses/{id} - 404 after delete'] = test_admin_courses_verify_404(course_id)
+    
+    results['Admin Courses - without token'] = test_admin_courses_without_token()
+    
+    # Admin Media tests
+    media_created, media_id = test_admin_media_create()
+    results['POST /api/admin/media'] = media_created
+    
+    if media_id:
+        results['GET /api/media?type=audio - verify new media'] = test_admin_media_verify_in_list(media_id)
+        results['DELETE /api/admin/media/{id}'] = test_admin_media_delete(media_id)
+    
+    results['POST /api/admin/media - without token'] = test_admin_media_without_token()
+    
+    # Admin Site Content tests
+    site_content_fetched, original_content = test_admin_site_content_get()
+    results['GET /api/site-content'] = site_content_fetched
+    
+    if original_content:
+        results['PUT /api/admin/site-content'] = test_admin_site_content_update(original_content)
+    
+    results['PUT /api/admin/site-content - without token'] = test_admin_site_content_without_token()
+    
+    # Admin Inbox tests
+    results['GET /api/admin/* - lists'] = test_admin_inbox_lists()
+    results['GET /api/admin/stats'] = test_admin_stats()
+    results['Admin Inbox - without token'] = test_admin_inbox_without_token()
+    results['DELETE /api/admin/badcollection/* - invalid'] = test_admin_delete_invalid_collection()
     
     # Summary
     print("\n" + "="*80)

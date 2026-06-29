@@ -2,9 +2,11 @@ import React from "react";
 import { ArrowRight, PlayCircle, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
-import { images, ayah } from "../mock";
+import { images } from "../mock";
+import { useSiteContent } from "../context/SiteContentContext";
 
 const Hero = () => {
+  const { hero } = useSiteContent();
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background image */}
@@ -26,17 +28,16 @@ const Hero = () => {
         <div className="max-w-2xl fade-up">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-4 py-1.5 text-sm text-white/90">
             <Sparkles className="h-4 w-4 text-accent" />
-            Learning that nurtures the soul
+            {hero.badge}
           </span>
 
           <h1 className="font-display text-white mt-6 text-[2.7rem] leading-[1.05] sm:text-6xl lg:text-7xl font-semibold tracking-tight">
-            Enlighten your life with the{" "}
-            <span className="italic text-accent">Nur</span> of Al Quran
+            {hero.titleLead}{" "}
+            <span className="italic text-accent">{hero.titleHighlight}</span> {hero.titleEnd}
           </h1>
 
           <p className="mt-6 text-lg text-white/85 leading-relaxed max-w-xl">
-            Authentic, heart-centered Quran &amp; Islamic education for every age —
-            guiding hearts back to their Creator through knowledge, beauty and goodness.
+            {hero.subtitle}
           </p>
 
           <div className="mt-9 flex flex-col sm:flex-row gap-4">
@@ -57,10 +58,10 @@ const Hero = () => {
           {/* Ayah card */}
           <div className="mt-12 inline-flex flex-col gap-1 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 px-6 py-4 max-w-md">
             <p className="font-arabic text-2xl text-white text-right leading-loose" dir="rtl">
-              {ayah.arabic}
+              {hero.ayahArabic}
             </p>
-            <p className="text-white/85 text-sm italic">“{ayah.translation}”</p>
-            <p className="text-accent text-xs font-medium tracking-wide">{ayah.reference}</p>
+            <p className="text-white/85 text-sm italic">“{hero.ayahTranslation}”</p>
+            <p className="text-accent text-xs font-medium tracking-wide">{hero.ayahReference}</p>
           </div>
         </div>
       </div>

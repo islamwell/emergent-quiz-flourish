@@ -1,15 +1,21 @@
-import React from "react";
-import { Library, Moon, Headphones, GalleryHorizontalEnd, BookMarked, ArrowRight } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Library, Moon, Headphones, GalleryHorizontalEnd, BookMarked, ArrowRight, Music } from "lucide-react";
 import PageHero from "../components/PageHero";
 import { images, resources, readingMaterial } from "../mock";
+import { getMedia } from "../lib/api";
 import { useToast } from "../hooks/use-toast";
 
 const iconMap = { Library, Moon, Headphones, GalleryHorizontalEnd };
 
 const Resources = () => {
   const { toast } = useToast();
+  const [audio, setAudio] = useState([]);
   const notify = (title) =>
     toast({ title, description: "This section is part of the preview — full content coming soon, inshaAllah." });
+
+  useEffect(() => {
+    getMedia("audio").then(setAudio).catch(() => {});
+  }, []);
 
   return (
     <>
@@ -60,6 +66,39 @@ const Resources = () => {
               </button>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Lectures / Audio */}
+      <section className="py-20 sm:py-28 bg-background">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8">
+          <div className="max-w-2xl">
+            <span className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">Lectures &amp; Recitations</span>
+            <h2 className="font-display text-4xl sm:text-5xl font-semibold text-foreground mt-4">Listen &amp; reflect</h2>
+          </div>
+          {audio.length === 0 ? (
+            <div className="mt-10 rounded-3xl border border-dashed border-border bg-secondary/30 p-12 text-center">
+              <Music className="h-8 w-8 text-primary/50 mx-auto" />
+              <p className="mt-3 text-muted-foreground">New lectures and recitations will appear here soon, inshaAllah.</p>
+            </div>
+          ) : (
+            <div className="mt-10 space-y-4">
+              {audio.map((a) => (
+                <div key={a.id} className="rounded-3xl border border-border bg-card p-6">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <Music className="h-5 w-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-foreground truncate">{a.title}</h3>
+                      {a.description && <p className="text-sm text-muted-foreground truncate">{a.description}</p>}
+                    </div>
+                  </div>
+                  <audio controls src={a.url} className="mt-4 w-full" />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </>

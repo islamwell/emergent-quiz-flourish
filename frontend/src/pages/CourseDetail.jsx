@@ -4,7 +4,7 @@ import { CheckCircle2, Clock, CalendarDays, Globe, User, BadgeCheck, ArrowLeft, 
 import PageHero from "../components/PageHero";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { images } from "../mock";
+import { images, resolveImage } from "../mock";
 import { getCourse, createEnrollment } from "../lib/api";
 import { useToast } from "../hooks/use-toast";
 
@@ -57,7 +57,7 @@ const CourseDetail = () => {
   return (
     <>
       <PageHero
-        image={images[course.image]}
+        image={resolveImage(course.image)}
         eyebrow={course.tag}
         title={course.title}
         subtitle={course.desc}
@@ -100,7 +100,7 @@ const CourseDetail = () => {
           <aside className="lg:col-span-1">
             <div className="sticky top-28 rounded-3xl border border-border bg-card shadow-xl shadow-emerald-900/5 overflow-hidden">
               <div className="relative h-40">
-                <img src={images[course.image]} alt={course.title} className="h-full w-full object-cover" />
+                <img src={resolveImage(course.image)} alt={course.title} className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground border-0 rounded-full">{course.level}</Badge>
               </div>

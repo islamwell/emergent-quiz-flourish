@@ -3,7 +3,7 @@ import { ArrowUpRight, Clock, CalendarDays, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { images } from "../mock";
+import { images, resolveImage } from "../mock";
 import { getCourses } from "../lib/api";
 
 const FeaturedCourses = () => {
@@ -49,7 +49,7 @@ const FeaturedCourses = () => {
             >
               <Link to={`/courses/${c.id}`} className="block relative h-52 overflow-hidden">
                 <img
-                  src={images[c.image]}
+                  src={resolveImage(c.image)}
                   alt={c.title}
                   className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />

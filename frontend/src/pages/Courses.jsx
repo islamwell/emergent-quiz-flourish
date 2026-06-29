@@ -4,7 +4,7 @@ import { ArrowUpRight, Clock, CalendarDays, Globe } from "lucide-react";
 import PageHero from "../components/PageHero";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { images } from "../mock";
+import { images, resolveImage } from "../mock";
 import { getCourses } from "../lib/api";
 
 const Courses = () => {
@@ -61,7 +61,7 @@ const Courses = () => {
                 className="group rounded-3xl overflow-hidden bg-card border border-border hover:shadow-2xl hover:shadow-emerald-900/10 hover:-translate-y-1.5 transition-all duration-400"
               >
                 <Link to={`/courses/${c.id}`} className="block relative h-52 overflow-hidden">
-                  <img src={images[c.image]} alt={c.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <img src={resolveImage(c.image)} alt={c.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                   <Badge className="absolute top-4 left-4 bg-accent text-accent-foreground hover:bg-accent border-0 rounded-full px-3">{c.tag}</Badge>
                   <span className="absolute bottom-4 left-4 text-white text-xs font-medium bg-white/15 backdrop-blur-md rounded-full px-3 py-1 border border-white/20">{c.level}</span>
