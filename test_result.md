@@ -169,7 +169,7 @@ backend:
     priority: "medium"
     needs_retesting: false
     status_history:
-        -working: "NA"
+        -working: true
         -agent: "main"
         -comment: "Stores course_id + course_title (name/email optional) in enrollments collection."
         -working: true
@@ -184,7 +184,7 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-        -working: "NA"
+        -working: true
         -agent: "main"
         -comment: "Login with admin creds from env returns JWT; wrong creds 401; /auth/me requires valid Bearer token (401 without)."
         -working: true
@@ -198,7 +198,7 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-        -working: "NA"
+        -working: true
         -agent: "main"
         -comment: "POST/PUT/DELETE /api/admin/courses require token (401 without). Create auto-slugs id and sets order. Verify create, update, delete, and that GET /api/courses reflects changes."
         -working: true
