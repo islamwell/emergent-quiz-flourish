@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 # Base URL from frontend/.env
-BASE_URL = "https://quran-flourish.preview.emergentagent.com/api"
+BASE_URL = "https://arab-fluency-1.preview.emergentagent.com/api"
 
 # Admin credentials from backend/.env
 ADMIN_USERNAME = "admin"

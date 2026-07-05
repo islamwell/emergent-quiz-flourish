@@ -4,7 +4,7 @@
 import requests
 import json
 
-BASE_URL = "https://quran-flourish.preview.emergentagent.com/api"
+BASE_URL = "https://arab-fluency-1.preview.emergentagent.com/api"
 
 # Test 1: Login with correct credentials
 print("=" * 80)
