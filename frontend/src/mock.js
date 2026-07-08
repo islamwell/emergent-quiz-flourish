@@ -42,6 +42,7 @@ export const navLinks = [
   { label: "Kids", to: "/kids" },
   { label: "About", to: "/about" },
   { label: "Resources", to: "/resources" },
+  { label: "Arabic Quiz", to: "/quiz" },
   { label: "Contact", to: "/contact" },
 ];
 

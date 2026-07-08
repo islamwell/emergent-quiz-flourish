@@ -8,6 +8,7 @@ import About from "./pages/About";
 import Kids from "./pages/Kids";
 import Resources from "./pages/Resources";
 import Contact from "./pages/Contact";
+import ArabicQuiz from "./pages/ArabicQuiz";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -40,6 +41,7 @@ function App() {
               <Route path="/kids" element={<Kids />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/quiz" element={<ArabicQuiz />} />
             </Route>
 
             {/* Admin */}
