@@ -104,18 +104,72 @@ const AdminCourses = () => {
         <Button onClick={openNew} className="rounded-full bg-primary hover:bg-primary/90"><Plus className="h-4 w-4 mr-1.5" />New Course</Button>
       </div>
 
-      <div className="mt-8 space-y-3">
+      <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {courses.map((c) => (
-          <div key={c.id} className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4">
-            <div className="h-16 w-20 rounded-xl overflow-hidden bg-secondary shrink-0">
-              {resolveImg(c.image) && <img src={resolveImg(c.image)} alt={c.title} className="h-full w-full object-cover" />}
+          <div
+            key={c.id}
+            className="group relative flex flex-col justify-between rounded-3xl border border-border bg-card overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+          >
+            <div className="relative h-40 overflow-hidden bg-secondary shrink-0">
+              {resolveImg(c.image) ? (
+                <img
+                  src={resolveImg(c.image)}
+                  alt={c.title}
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              ) : (
+                <div className="h-full w-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center text-primary font-display font-semibold">
+                  {c.title.slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-foreground text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm">
+                {c.tag}
+              </span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-foreground truncate">{c.title}</p>
-              <p className="text-sm text-muted-foreground truncate">{c.tag} • {c.level} • {c.duration}</p>
+            
+            <div className="p-5 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 className="font-semibold text-lg text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                  {c.title}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                  {c.desc}
+                </p>
+                
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  <span className="text-[11px] bg-secondary px-2.5 py-0.5 rounded-full text-foreground/80 font-medium">
+                    {c.level}
+                  </span>
+                  <span className="text-[11px] bg-secondary px-2.5 py-0.5 rounded-full text-foreground/80 font-medium">
+                    {c.duration}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-border flex items-center justify-between">
+                <span className="text-xs font-semibold text-primary">
+                  {c.fee || "Free"}
+                </span>
+                <div className="flex gap-1.5">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openEdit(c)}
+                    className="h-8 w-8 p-0 rounded-full hover:bg-primary/10 hover:text-primary"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setDeleteId(c.id)}
+                    className="h-8 w-8 p-0 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => openEdit(c)} className="rounded-lg"><Pencil className="h-4 w-4" /></Button>
-            <Button variant="ghost" size="sm" onClick={() => setDeleteId(c.id)} className="rounded-lg text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
           </div>
         ))}
       </div>
