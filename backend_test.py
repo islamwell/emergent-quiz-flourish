@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 # Base URL from frontend/.env
-BASE_URL = "https://arab-fluency-1.preview.emergentagent.com/api"
+BASE_URL = "http://127.0.0.1:8000/api"
 
 # Admin credentials from backend/.env
 ADMIN_USERNAME = "admin"
@@ -45,9 +45,9 @@ def test_get_courses():
         courses = response.json()
         print(f"Number of courses returned: {len(courses)}")
         
-        # Check if we got 6 courses
-        if len(courses) != 6:
-            print_result(False, f"Expected 6 courses, got {len(courses)}")
+        # Check if we got 7 courses
+        if len(courses) != 7:
+            print_result(False, f"Expected 7 courses, got {len(courses)}")
             return False
         
         # Check if courses are sorted by order

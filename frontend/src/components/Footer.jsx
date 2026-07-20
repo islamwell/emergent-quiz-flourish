@@ -78,6 +78,9 @@ const Footer = () => {
           <p className="text-sm text-primary-foreground/60">
             © {new Date().getFullYear()} NurulQuran. A redesign concept — made with light.
           </p>
+          <p className="text-xs text-primary-foreground/40">
+            v1.0.1 (updated 2026-07-20 16:16)
+          </p>
           <p className="text-sm text-primary-foreground/60">
             Enlightening lives, one verse at a time.
           </p>

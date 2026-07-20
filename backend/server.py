@@ -1,7 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import re
 import logging
@@ -14,13 +13,12 @@ from datetime import datetime, timezone
 from seed_data import COURSES_SEED
 from site_content import DEFAULT_SITE_CONTENT
 from auth import verify_credentials, create_access_token, get_current_admin
+from database import init_db
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = init_db()
 
 app = FastAPI(title="NurulQuran API")
 api_router = APIRouter(prefix="/api")
@@ -129,13 +127,13 @@ async def root():
 
 @api_router.get("/courses", response_model=List[Course])
 async def get_courses():
-    courses = await db.courses.find({}, {"_id": 0}).sort("order", 1).to_list(200)
+    courses = await db.get_courses()
     return [Course(**c) for c in courses]
 
 
 @api_router.get("/courses/{course_id}", response_model=Course)
 async def get_course(course_id: str):
-    course = await db.courses.find_one({"id": course_id}, {"_id": 0})
+    course = await db.get_course(course_id)
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     return Course(**course)
@@ -143,38 +141,37 @@ async def get_course(course_id: str):
 
 @api_router.get("/site-content")
 async def get_site_content():
-    doc = await db.site_content.find_one({"key": "main"}, {"_id": 0})
+    doc = await db.get_site_content()
     return doc or DEFAULT_SITE_CONTENT
 
 
 @api_router.get("/media", response_model=List[MediaItem])
 async def get_media(type: Optional[str] = None):
-    query = {"type": type} if type else {}
-    items = await db.media.find(query, {"_id": 0}).sort("created_at", -1).to_list(500)
+    items = await db.get_media(type)
     return [MediaItem(**m) for m in items]
 
 
 @api_router.post("/contact", response_model=ContactMessage)
 async def create_contact(payload: ContactCreate):
     msg = ContactMessage(**payload.dict())
-    await db.contacts.insert_one(msg.dict())
+    await db.create_contact(msg.id, msg.dict())
     return msg
 
 
 @api_router.post("/newsletter", response_model=NewsletterSignup)
 async def subscribe_newsletter(payload: NewsletterCreate):
-    existing = await db.newsletter.find_one({"email": payload.email}, {"_id": 0})
+    existing = await db.get_newsletter_by_email(payload.email)
     if existing:
         return NewsletterSignup(**existing)
     signup = NewsletterSignup(**payload.dict())
-    await db.newsletter.insert_one(signup.dict())
+    await db.create_newsletter(signup.id, signup.dict())
     return signup
 
 
 @api_router.post("/enrollments", response_model=Enrollment)
 async def create_enrollment(payload: EnrollmentCreate):
     enrollment = Enrollment(**payload.dict())
-    await db.enrollments.insert_one(enrollment.dict())
+    await db.create_enrollment(enrollment.id, enrollment.dict())
     return enrollment
 
 
@@ -197,19 +194,19 @@ async def me(admin: str = Depends(get_current_admin)):
 async def create_course(payload: CourseInput, admin: str = Depends(get_current_admin)):
     data = payload.dict()
     course_id = slugify(data["title"])
-    if await db.courses.find_one({"id": course_id}):
+    if await db.get_course(course_id):
         course_id = f"{course_id}-{str(uuid.uuid4())[:4]}"
     if data.get("order") is None:
-        last = await db.courses.find_one({}, sort=[("order", -1)])
-        data["order"] = (last["order"] + 1) if last else 1
+        courses_list = await db.get_courses()
+        data["order"] = (courses_list[-1]["order"] + 1) if courses_list else 1
     course = Course(id=course_id, **data)
-    await db.courses.insert_one(course.dict())
+    await db.create_course(course.id, course.dict())
     return course
 
 
 @api_router.put("/admin/courses/{course_id}", response_model=Course)
 async def update_course(course_id: str, payload: CourseInput, admin: str = Depends(get_current_admin)):
-    existing = await db.courses.find_one({"id": course_id}, {"_id": 0})
+    existing = await db.get_course(course_id)
     if not existing:
         raise HTTPException(status_code=404, detail="Course not found")
     data = payload.dict()
@@ -217,14 +214,14 @@ async def update_course(course_id: str, payload: CourseInput, admin: str = Depen
         data["order"] = existing.get("order", 0)
     merged = {**existing, **data, "id": course_id}
     course = Course(**merged)
-    await db.courses.replace_one({"id": course_id}, course.dict())
+    await db.update_course(course_id, course.dict())
     return course
 
 
 @api_router.delete("/admin/courses/{course_id}")
 async def delete_course(course_id: str, admin: str = Depends(get_current_admin)):
-    res = await db.courses.delete_one({"id": course_id})
-    if res.deleted_count == 0:
+    deleted = await db.delete_course(course_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Course not found")
     return {"deleted": course_id}
 
@@ -233,14 +230,14 @@ async def delete_course(course_id: str, admin: str = Depends(get_current_admin))
 @api_router.post("/admin/media", response_model=MediaItem)
 async def create_media(payload: MediaInput, admin: str = Depends(get_current_admin)):
     item = MediaItem(**payload.dict())
-    await db.media.insert_one(item.dict())
+    await db.create_media(item.id, item.dict())
     return item
 
 
 @api_router.delete("/admin/media/{media_id}")
 async def delete_media(media_id: str, admin: str = Depends(get_current_admin)):
-    res = await db.media.delete_one({"id": media_id})
-    if res.deleted_count == 0:
+    deleted = await db.delete_media(media_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Media not found")
     return {"deleted": media_id}
 
@@ -248,48 +245,41 @@ async def delete_media(media_id: str, admin: str = Depends(get_current_admin)):
 # ---------------------- Admin: Site Content ----------------------
 @api_router.put("/admin/site-content")
 async def update_site_content(payload: Dict[str, Any], admin: str = Depends(get_current_admin)):
-    payload["key"] = "main"
-    await db.site_content.replace_one({"key": "main"}, payload, upsert=True)
-    doc = await db.site_content.find_one({"key": "main"}, {"_id": 0})
+    await db.update_site_content(payload)
+    doc = await db.get_site_content()
     return doc
 
 
 # ---------------------- Admin: Inbox ----------------------
 @api_router.get("/admin/contacts")
 async def list_contacts(admin: str = Depends(get_current_admin)):
-    items = await db.contacts.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    items = await db.list_contacts()
     return items
 
 
 @api_router.get("/admin/newsletter")
 async def list_newsletter(admin: str = Depends(get_current_admin)):
-    items = await db.newsletter.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    items = await db.list_newsletter()
     return items
 
 
 @api_router.get("/admin/enrollments")
 async def list_enrollments(admin: str = Depends(get_current_admin)):
-    items = await db.enrollments.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    items = await db.list_enrollments()
     return items
 
 
 @api_router.get("/admin/stats")
 async def admin_stats(admin: str = Depends(get_current_admin)):
-    return {
-        "courses": await db.courses.count_documents({}),
-        "media": await db.media.count_documents({}),
-        "contacts": await db.contacts.count_documents({}),
-        "newsletter": await db.newsletter.count_documents({}),
-        "enrollments": await db.enrollments.count_documents({}),
-    }
+    return await db.get_stats()
 
 
 @api_router.delete("/admin/{collection}/{item_id}")
 async def delete_inbox_item(collection: str, item_id: str, admin: str = Depends(get_current_admin)):
     if collection not in {"contacts", "newsletter", "enrollments"}:
         raise HTTPException(status_code=400, detail="Invalid collection")
-    res = await db[collection].delete_one({"id": item_id})
-    if res.deleted_count == 0:
+    deleted = await db.delete_inbox_item(collection, item_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Item not found")
     return {"deleted": item_id}
 
@@ -311,14 +301,15 @@ logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def seed_data():
-    if await db.courses.count_documents({}) == 0:
-        await db.courses.insert_many([dict(c) for c in COURSES_SEED])
+    if await db.count_courses() == 0:
+        for c in COURSES_SEED:
+            await db.create_course(c['id'], dict(c))
         logger.info("Seeded %d courses", len(COURSES_SEED))
-    if await db.site_content.count_documents({"key": "main"}) == 0:
-        await db.site_content.insert_one(dict(DEFAULT_SITE_CONTENT))
+    if await db.count_site_content("main") == 0:
+        await db.update_site_content(dict(DEFAULT_SITE_CONTENT))
         logger.info("Seeded default site content")
 
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    client.close()
+    pass
