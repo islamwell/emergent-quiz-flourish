@@ -359,6 +359,12 @@ def init_db():
     firebase_key_path = os.environ.get("FIREBASE_SERVICE_ACCOUNT_KEY")
     google_app_creds = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
     
+    if not firebase_key_path:
+        for path in ["firebase-key.json", "backend/firebase-key.json"]:
+            if os.path.exists(path):
+                firebase_key_path = path
+                break
+    
     use_firebase = False
     db_client = None
     
