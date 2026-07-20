@@ -79,7 +79,7 @@ const Footer = () => {
             © {new Date().getFullYear()} NurulQuran. A redesign concept — made with light.
           </p>
           <p className="text-xs text-primary-foreground/40">
-            v1.0.4 (updated 2026-07-20 16:58)
+            v1.0.5 (updated 2026-07-20 19:52)
           </p>
           <p className="text-sm text-primary-foreground/60">
             Enlightening lives, one verse at a time.

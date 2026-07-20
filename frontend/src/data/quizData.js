@@ -425,13 +425,153 @@ export const questions = [
     explanation:
       "Nouns: عِلْمٌ, كِتَابٌ, مَدْرَسَةٌ (note the tanwin ـٌ — a key noun marker). Verbs: كَتَبَ (past), يَذْهَبُ (present), قَرَأَ (past).",
   },
+
+  // ── [NEW] 11 MORE QUESTIONS FOR ENRICHED POOL ─────────────────────────────
+  {
+    id: "tf-b-2",
+    type: "true-false",
+    difficulty: "beginner",
+    arabic: "الكِتَاب",
+    statement: 'The word الكِتَاب (al-Kitāb) means "the book" in Arabic.',
+    answer: true,
+    explanation:
+      "Correct! الكِتَاب (al-Kitāb) simply means 'the book' (with the definite article 'al-'). It is also one of the names of the Holy Quran.",
+  },
+  {
+    id: "mc-b-2",
+    type: "multiple-choice",
+    difficulty: "beginner",
+    arabic: "قَلَم",
+    question: "What does قَلَم mean?",
+    options: ["Book", "Pen", "Desk", "Chair"],
+    answer: 1,
+    explanation:
+      "قَلَم (qalam) means pen. The pen is highly honored in Arabic tradition, and an entire Surah in the Quran is named 'Al-Qalam' (The Pen).",
+  },
+  {
+    id: "syn-b-2",
+    type: "synonyms",
+    difficulty: "beginner",
+    arabic: "بَيْت",
+    arabicMeaning: "house",
+    question: "Which word is closest in meaning to بَيْت?",
+    options: ["مَدْرَسَة", "مَسْجِد", "مَنْزِل", "حَدِيقَة"],
+    optionMeanings: ["school", "mosque", "house / dwelling", "garden"],
+    answer: 2,
+    explanation:
+      "مَنْزِل (manzil) means house or landing place — the most common synonym for بَيْت (house/home) in Arabic.",
+  },
+  {
+    id: "ant-b-2",
+    type: "antonyms",
+    difficulty: "beginner",
+    arabic: "جَدِيد",
+    arabicMeaning: "new",
+    question: "What is the opposite of جَدِيد?",
+    options: ["كَبِير", "صَغِير", "قَدِيم", "جَمِيل"],
+    optionMeanings: ["big", "small", "old", "beautiful"],
+    answer: 2,
+    explanation:
+      "قَدِيم (qadīm) means old — the direct opposite of جَدِيد (new).",
+  },
+  {
+    id: "fib-i-2",
+    type: "fill-blank",
+    difficulty: "intermediate",
+    sentence: "الْوَقْتُ كَالسَّيْفِ إِنْ لَمْ تَقْطَعْهُ ________",
+    translation: "Time is like a sword, if you do not cut it, it ________",
+    options: ["قَطَعَكَ", "نَفَعَكَ", "حَفِظَكَ", "ضَرَّكَ"],
+    optionMeanings: ["cuts you", "benefits you", "protects you", "harms you"],
+    answer: 0,
+    explanation:
+      "الْوَقْتُ كَالسَّيْفِ إِنْ لَمْ تَقْطَعْهُ قَطَعَكَ — 'Time is like a sword, if you do not cut it, it cuts you.' One of the most famous classical Arabic adages emphasizing the urgency of time management.",
+  },
+  {
+    id: "odd-i-2",
+    type: "odd-one-out",
+    difficulty: "intermediate",
+    question: "Which word does NOT belong to the same category as the others?",
+    options: ["شَمْس", "قَمَر", "نَجْم", "بَحْر"],
+    optionMeanings: ["sun", "moon", "star", "sea"],
+    answer: 3,
+    explanation:
+      "بَحْر (baḥr) means sea, which is a body of water. The others (شَمْس, قَمَر, نَجْم) are celestial bodies in the sky.",
+  },
+  {
+    id: "emoji-i-2",
+    type: "emoji-clue",
+    difficulty: "intermediate",
+    emojis: ["🍎", "🍌", "🍇"],
+    question: "What Arabic word do these emojis represent?",
+    options: ["خُضَار", "فَوَاكِه", "لُحُوم", "خُبْز"],
+    optionMeanings: ["vegetables", "fruits", "meats", "bread"],
+    answer: 1,
+    explanation:
+      "The apple, banana, and grapes emojis together represent فَوَاكِه (fawākih) — fruits.",
+  },
+  {
+    id: "tf-a-2",
+    type: "true-false",
+    difficulty: "advanced",
+    arabic: "الرَّحْمَن",
+    statement: 'The divine name الرَّحْمَن (ar-Raḥmān) translates to "The Creator".',
+    answer: false,
+    explanation:
+      "الرَّحْمَن actually translates to 'The Entirely Merciful' or 'The All-Merciful', denoting infinite divine mercy, whereas Creator is الخَالِق (al-Khāliq).",
+  },
+  {
+    id: "mc-a-2",
+    type: "multiple-choice",
+    difficulty: "advanced",
+    arabic: "بَرْزَخ",
+    question: "Which of these best defines the classical term بَرْزَخ?",
+    options: ["An eternal garden", "A barrier / partition", "The final judgment", "A path of light"],
+    answer: 1,
+    explanation:
+      "بَرْزَخ (barzakh) means a barrier, partition, or intermediate state. In Islamic theology, it represents the realm of souls between physical death and resurrection.",
+  },
+  {
+    id: "match-a-2",
+    type: "matching",
+    difficulty: "advanced",
+    question: "Match each classical term for time to its correct definition.",
+    pairs: [
+      { arabic: "سَرْمَد", english: "Eternal time" },
+      { arabic: "أَبَد", english: "Endless future" },
+      { arabic: "دَهْر", english: "Epoch / Eon" },
+      { arabic: "خُلُود", english: "Immortality" },
+    ],
+    explanation:
+      "Classical time sub-terms: سَرْمَد (timeless eternity), أَبَد (endless future duration), دَهْر (historical eon/span of time), خُلُود (perpetual durability / immortality).",
+  },
+  {
+    id: "cat-a-2",
+    type: "category-sort",
+    difficulty: "advanced",
+    question: "Sort these Arabic nouns into their correct grammatical state classes.",
+    categories: ["مَرْفُوع (Nominative)", "مَجْرُور (Genitive)"],
+    words: [
+      { arabic: "مَعْرِفَةٌ", english: "knowledge", category: 0 },
+      { arabic: "بِالْمَعْرِفَةِ", english: "by knowledge", category: 1 },
+      { arabic: "كِتَابٌ", english: "a book", category: 0 },
+      { arabic: "فِي كِتَابٍ", english: "in a book", category: 1 },
+      { arabic: "مُدَرِّسٌ", english: "a teacher", category: 0 },
+      { arabic: "لِلْمُدَرِّسِ", english: "for the teacher", category: 1 },
+    ],
+    explanation:
+      "Nominative (مَرْفُوع) nouns typically end with damma (ـٌ / ـُ), while Genitive (مَجْرُور) nouns end with kasra (ـٍ / ـِ) due to prepositions like بِ, فِي, لِ.",
+  },
 ];
 
 /**
- * Returns exactly 9 questions (one per type) for the chosen difficulty level.
+ * Returns exactly 9 questions (one per type) for the chosen difficulty level,
+ * picking randomly from the matching question pool.
  */
 export function getSessionQuestions(difficulty) {
-  return QUESTION_ORDER.map((type) =>
-    questions.find((q) => q.type === type && q.difficulty === difficulty)
-  ).filter(Boolean);
+  return QUESTION_ORDER.map((type) => {
+    const pool = questions.filter((q) => q.type === type && q.difficulty === difficulty);
+    if (pool.length === 0) return null;
+    // Pick a random question from the pool
+    return pool[Math.floor(Math.random() * pool.length)];
+  }).filter(Boolean);
 }

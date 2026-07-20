@@ -1,16 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ArrowRight,
   RotateCcw,
   ChevronLeft,
   CheckCircle,
   XCircle,
+  Play,
+  Pause,
 } from "lucide-react";
 import {
   getSessionQuestions,
   DIFFICULTIES,
   TYPE_LABELS,
-  QUESTION_ORDER,
 } from "../data/quizData";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -24,19 +25,10 @@ function shuffleArray(arr) {
   return a;
 }
 
-// Pre-defined pair colours so Tailwind JIT includes them
 const PAIR_STYLES = [
-  {
-    bg: "bg-emerald-50",
-    border: "border-emerald-400",
-    text: "text-emerald-800",
-  },
+  { bg: "bg-emerald-50", border: "border-emerald-400", text: "text-emerald-800" },
   { bg: "bg-blue-50", border: "border-blue-400", text: "text-blue-800" },
-  {
-    bg: "bg-violet-50",
-    border: "border-violet-400",
-    text: "text-violet-800",
-  },
+  { bg: "bg-violet-50", border: "border-violet-400", text: "text-violet-800" },
   { bg: "bg-amber-50", border: "border-amber-400", text: "text-amber-800" },
 ];
 
@@ -52,25 +44,35 @@ function TypeBadge({ type }) {
 
 // ─── Feedback Box ─────────────────────────────────────────────────────────────
 
-function FeedbackBox({ correct, explanation, onNext, isLast }) {
+function FeedbackBox({
+  correct,
+  explanation,
+  onNext,
+  isLast,
+  timeLeft,
+  isPaused,
+  onPauseToggle,
+}) {
+  const progressPercent = ((4000 - timeLeft) / 4000) * 100;
+
   return (
     <div
-      className={`rounded-2xl p-5 border-2 space-y-4 transition-all ${
+      className={`relative overflow-hidden rounded-2xl p-5 border-2 space-y-4 transition-all ${
         correct
-          ? "bg-emerald-50 border-emerald-300"
-          : "bg-red-50 border-red-300"
+          ? "bg-emerald-50 border-emerald-300 dark:bg-emerald-950/20 dark:border-emerald-900/40"
+          : "bg-red-50 border-red-300 dark:bg-red-950/20 dark:border-red-900/40"
       }`}
     >
       <div className="flex items-start gap-3">
         {correct ? (
-          <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+          <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
         ) : (
-          <XCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+          <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
         )}
         <div>
           <p
             className={`font-semibold text-sm ${
-              correct ? "text-emerald-800" : "text-red-800"
+              correct ? "text-emerald-800 dark:text-emerald-300" : "text-red-800 dark:text-red-300"
             }`}
           >
             {correct ? "Correct!" : "Not quite!"}
@@ -80,27 +82,56 @@ function FeedbackBox({ correct, explanation, onNext, isLast }) {
           </p>
         </div>
       </div>
-      <button
-        onClick={onNext}
-        className="w-full h-11 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
-      >
-        {isLast ? "See Results 🏆" : "Next Question"}
-        <ArrowRight className="h-4 w-4" />
-      </button>
+      <div className="flex flex-col sm:flex-row gap-2 relative z-10">
+        <button
+          onClick={onPauseToggle}
+          className="h-11 px-4 rounded-xl border border-border bg-background text-foreground hover:bg-secondary text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+        >
+          {isPaused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+          {isPaused ? "Resume" : "Pause"}
+        </button>
+        <button
+          onClick={onNext}
+          className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+        >
+          {isLast
+            ? "See Results 🏆"
+            : isPaused
+            ? "Next Question"
+            : `Next (Auto in ${Math.ceil(timeLeft / 1000)}s)`}
+          <ArrowRight className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Auto-advance progress line (increasing in length) */}
+      {!isPaused && !isLast && (
+        <div
+          className={`absolute bottom-0 left-0 h-1 transition-all ease-linear ${
+            correct ? "bg-emerald-500" : "bg-red-500"
+          }`}
+          style={{ width: `${progressPercent}%`, transitionDuration: "50ms" }}
+        />
+      )}
     </div>
   );
 }
 
 // ─── Question: True / False ───────────────────────────────────────────────────
 
-function TrueFalseQ({ question, onAnswer, answered, lastCorrect }) {
+function TrueFalseQ({ question, onAnswer, answered, chosenOption }) {
   const [chosen, setChosen] = useState(null);
+
+  useEffect(() => {
+    if (!answered) setChosen(null);
+  }, [answered]);
 
   const pick = (val) => {
     if (answered) return;
     setChosen(val);
     onAnswer(val === question.answer, val);
   };
+
+  const currentChoice = answered ? chosenOption : chosen;
 
   return (
     <div className="space-y-8">
@@ -119,7 +150,7 @@ function TrueFalseQ({ question, onAnswer, answered, lastCorrect }) {
           if (answered) {
             if (val === question.answer)
               cls += "bg-emerald-500 border-emerald-500 text-white";
-            else if (val === chosen)
+            else if (val === currentChoice)
               cls += "bg-red-500 border-red-500 text-white";
             else
               cls += "opacity-30 bg-secondary border-border text-muted-foreground";
@@ -145,14 +176,20 @@ function TrueFalseQ({ question, onAnswer, answered, lastCorrect }) {
 
 // ─── Question: Multiple Choice ────────────────────────────────────────────────
 
-function MultipleChoiceQ({ question, onAnswer, answered }) {
+function MultipleChoiceQ({ question, onAnswer, answered, chosenOption }) {
   const [chosen, setChosen] = useState(null);
+
+  useEffect(() => {
+    if (!answered) setChosen(null);
+  }, [answered]);
 
   const pick = (i) => {
     if (answered) return;
     setChosen(i);
     onAnswer(i === question.answer, i);
   };
+
+  const currentChoice = answered ? chosenOption : chosen;
 
   return (
     <div className="space-y-8">
@@ -168,9 +205,9 @@ function MultipleChoiceQ({ question, onAnswer, answered }) {
             "p-4 rounded-2xl border-2 text-left text-sm font-medium transition-all duration-200 ";
           if (answered) {
             if (i === question.answer)
-              cls += "bg-emerald-50 border-emerald-400 text-emerald-800";
-            else if (i === chosen)
-              cls += "bg-red-50 border-red-400 text-red-800";
+              cls += "bg-emerald-50 border-emerald-400 text-emerald-800 dark:bg-emerald-950/20 dark:border-emerald-900";
+            else if (i === currentChoice)
+              cls += "bg-red-50 border-red-400 text-red-800 dark:bg-red-950/20 dark:border-red-900";
             else
               cls += "opacity-30 bg-secondary border-border text-muted-foreground";
           } else {
@@ -200,14 +237,20 @@ function MultipleChoiceQ({ question, onAnswer, answered }) {
 
 // ─── Question: Synonyms / Antonyms ───────────────────────────────────────────
 
-function SynAntQ({ question, onAnswer, answered }) {
+function SynAntQ({ question, onAnswer, answered, chosenOption }) {
   const [chosen, setChosen] = useState(null);
+
+  useEffect(() => {
+    if (!answered) setChosen(null);
+  }, [answered]);
 
   const pick = (i) => {
     if (answered) return;
     setChosen(i);
     onAnswer(i === question.answer, i);
   };
+
+  const currentChoice = answered ? chosenOption : chosen;
 
   return (
     <div className="space-y-8">
@@ -226,9 +269,9 @@ function SynAntQ({ question, onAnswer, answered }) {
             "p-4 rounded-2xl border-2 transition-all duration-200 text-center ";
           if (answered) {
             if (i === question.answer)
-              cls += "bg-emerald-50 border-emerald-400 text-emerald-800";
-            else if (i === chosen)
-              cls += "bg-red-50 border-red-400 text-red-800";
+              cls += "bg-emerald-50 border-emerald-400 text-emerald-800 dark:bg-emerald-950/20 dark:border-emerald-900";
+            else if (i === currentChoice)
+              cls += "bg-red-50 border-red-400 text-red-800 dark:bg-red-950/20 dark:border-red-900";
             else
               cls += "opacity-30 bg-secondary border-border text-muted-foreground";
           } else {
@@ -258,14 +301,20 @@ function SynAntQ({ question, onAnswer, answered }) {
 
 // ─── Question: Fill in the Blank ─────────────────────────────────────────────
 
-function FillBlankQ({ question, onAnswer, answered }) {
+function FillBlankQ({ question, onAnswer, answered, chosenOption }) {
   const [chosen, setChosen] = useState(null);
+
+  useEffect(() => {
+    if (!answered) setChosen(null);
+  }, [answered]);
 
   const pick = (i) => {
     if (answered) return;
     setChosen(i);
     onAnswer(i === question.answer, i);
   };
+
+  const currentChoice = answered ? chosenOption : chosen;
 
   return (
     <div className="space-y-7">
@@ -284,9 +333,9 @@ function FillBlankQ({ question, onAnswer, answered }) {
             "p-4 rounded-2xl border-2 transition-all duration-200 text-center ";
           if (answered) {
             if (i === question.answer)
-              cls += "bg-emerald-50 border-emerald-400 text-emerald-800";
-            else if (i === chosen)
-              cls += "bg-red-50 border-red-400 text-red-800";
+              cls += "bg-emerald-50 border-emerald-400 text-emerald-800 dark:bg-emerald-950/20 dark:border-emerald-900";
+            else if (i === currentChoice)
+              cls += "bg-red-50 border-red-400 text-red-800 dark:bg-red-950/20 dark:border-red-900";
             else
               cls += "opacity-30 bg-secondary border-border text-muted-foreground";
           } else {
@@ -323,7 +372,7 @@ function MatchingQ({ question, onAnswer, answered }) {
     )
   );
   const [selectedLeft, setSelectedLeft] = useState(null);
-  const [matched, setMatched] = useState([]); // [{leftIndex, rightIndex, matchIdx}]
+  const [matched, setMatched] = useState([]);
   const [shake, setShake] = useState(false);
   const [strikes, setStrikes] = useState(0);
 
@@ -447,14 +496,20 @@ function MatchingQ({ question, onAnswer, answered }) {
 
 // ─── Question: Odd One Out ────────────────────────────────────────────────────
 
-function OddOneOutQ({ question, onAnswer, answered }) {
+function OddOneOutQ({ question, onAnswer, answered, chosenOption }) {
   const [chosen, setChosen] = useState(null);
+
+  useEffect(() => {
+    if (!answered) setChosen(null);
+  }, [answered]);
 
   const pick = (i) => {
     if (answered) return;
     setChosen(i);
     onAnswer(i === question.answer, i);
   };
+
+  const currentChoice = answered ? chosenOption : chosen;
 
   return (
     <div className="space-y-7">
@@ -464,9 +519,9 @@ function OddOneOutQ({ question, onAnswer, answered }) {
           let cls = "p-5 rounded-2xl border-2 transition-all duration-200 text-center ";
           if (answered) {
             if (i === question.answer)
-              cls += "bg-emerald-50 border-emerald-400 text-emerald-800";
-            else if (i === chosen)
-              cls += "bg-red-50 border-red-400 text-red-800";
+              cls += "bg-emerald-50 border-emerald-400 text-emerald-800 dark:bg-emerald-950/20 dark:border-emerald-900";
+            else if (i === currentChoice)
+              cls += "bg-red-50 border-red-400 text-red-800 dark:bg-red-950/20 dark:border-red-900";
             else
               cls += "opacity-30 bg-secondary border-border text-muted-foreground";
           } else {
@@ -496,14 +551,20 @@ function OddOneOutQ({ question, onAnswer, answered }) {
 
 // ─── Question: Emoji Clue ─────────────────────────────────────────────────────
 
-function EmojiClueQ({ question, onAnswer, answered }) {
+function EmojiClueQ({ question, onAnswer, answered, chosenOption }) {
   const [chosen, setChosen] = useState(null);
+
+  useEffect(() => {
+    if (!answered) setChosen(null);
+  }, [answered]);
 
   const pick = (i) => {
     if (answered) return;
     setChosen(i);
     onAnswer(i === question.answer, i);
   };
+
+  const currentChoice = answered ? chosenOption : chosen;
 
   return (
     <div className="space-y-7">
@@ -524,9 +585,9 @@ function EmojiClueQ({ question, onAnswer, answered }) {
             "p-4 rounded-2xl border-2 transition-all duration-200 text-center ";
           if (answered) {
             if (i === question.answer)
-              cls += "bg-emerald-50 border-emerald-400 text-emerald-800";
-            else if (i === chosen)
-              cls += "bg-red-50 border-red-400 text-red-800";
+              cls += "bg-emerald-50 border-emerald-400 text-emerald-800 dark:bg-emerald-950/20 dark:border-emerald-900";
+            else if (i === currentChoice)
+              cls += "bg-red-50 border-red-400 text-red-800 dark:bg-red-950/20 dark:border-red-900";
             else
               cls += "opacity-30 bg-secondary border-border text-muted-foreground";
           } else {
@@ -679,7 +740,7 @@ function CategorySortQ({ question, onAnswer, answered }) {
 
 // ─── Question Renderer ────────────────────────────────────────────────────────
 
-function QuestionRenderer({ question, onAnswer, answered }) {
+function QuestionRenderer({ question, onAnswer, answered, chosenOption }) {
   switch (question.type) {
     case "true-false":
       return (
@@ -687,6 +748,7 @@ function QuestionRenderer({ question, onAnswer, answered }) {
           question={question}
           onAnswer={onAnswer}
           answered={answered}
+          chosenOption={chosenOption}
         />
       );
     case "multiple-choice":
@@ -695,12 +757,18 @@ function QuestionRenderer({ question, onAnswer, answered }) {
           question={question}
           onAnswer={onAnswer}
           answered={answered}
+          chosenOption={chosenOption}
         />
       );
     case "synonyms":
     case "antonyms":
       return (
-        <SynAntQ question={question} onAnswer={onAnswer} answered={answered} />
+        <SynAntQ
+          question={question}
+          onAnswer={onAnswer}
+          answered={answered}
+          chosenOption={chosenOption}
+        />
       );
     case "fill-blank":
       return (
@@ -708,6 +776,7 @@ function QuestionRenderer({ question, onAnswer, answered }) {
           question={question}
           onAnswer={onAnswer}
           answered={answered}
+          chosenOption={chosenOption}
         />
       );
     case "matching":
@@ -724,6 +793,7 @@ function QuestionRenderer({ question, onAnswer, answered }) {
           question={question}
           onAnswer={onAnswer}
           answered={answered}
+          chosenOption={chosenOption}
         />
       );
     case "emoji-clue":
@@ -732,6 +802,7 @@ function QuestionRenderer({ question, onAnswer, answered }) {
           question={question}
           onAnswer={onAnswer}
           answered={answered}
+          chosenOption={chosenOption}
         />
       );
     case "category-sort":
@@ -751,6 +822,19 @@ function QuestionRenderer({ question, onAnswer, answered }) {
 
 function QuizLanding({ onStart }) {
   const [selected, setSelected] = useState(null);
+  const [history, setHistory] = useState([]);
+
+  useEffect(() => {
+    try {
+      const items = JSON.parse(localStorage.getItem("nq_quiz_history") || "[]");
+      setHistory(items);
+    } catch {}
+  }, []);
+
+  const clearHistory = () => {
+    localStorage.removeItem("nq_quiz_history");
+    setHistory([]);
+  };
 
   const types = [
     "True / False",
@@ -773,8 +857,7 @@ function QuizLanding({ onStart }) {
             Arabic Language Quiz
           </span>
           <h1 className="mt-4 font-display text-4xl sm:text-5xl font-semibold text-foreground leading-tight">
-            Test Your Arabic{" "}
-            <span className="text-primary">Knowledge</span>
+            Test Your Arabic <span className="text-primary">Knowledge</span>
           </h1>
           <p
             className="mt-3 font-arabic text-3xl text-primary/80 leading-loose"
@@ -783,8 +866,7 @@ function QuizLanding({ onStart }) {
             اِخْتَبِرْ نَفْسَكَ
           </p>
           <p className="mt-4 text-muted-foreground max-w-md mx-auto text-sm">
-            9 unique question types · 9 questions per session · Choose your
-            level
+            9 unique question types · 9 questions per session · Choose your level
           </p>
           {/* Type chips */}
           <div className="mt-5 flex flex-wrap gap-2 justify-center">
@@ -844,6 +926,56 @@ function QuizLanding({ onStart }) {
               } Quiz →`
             : "Select a difficulty to begin"}
         </button>
+
+        {/* History section */}
+        {history.length > 0 && (
+          <div className="mt-12 rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-lg text-foreground">Your Quiz History</h3>
+              <button
+                onClick={clearHistory}
+                className="text-xs font-semibold text-muted-foreground hover:text-destructive transition-colors"
+              >
+                Clear History
+              </button>
+            </div>
+            <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+              {history.map((h, i) => {
+                const grade =
+                  h.pct >= 89 ? "A" : h.pct >= 78 ? "B" : h.pct >= 67 ? "C" : h.pct >= 56 ? "D" : "F";
+                const badgeColor =
+                  h.pct >= 78
+                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
+                    : h.pct >= 56
+                    ? "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
+                    : "bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400";
+                return (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-3.5 rounded-xl bg-secondary/30 border border-border/50 text-sm"
+                  >
+                    <div>
+                      <p className="font-semibold text-foreground capitalize">{h.difficulty} level</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {new Date(h.date).toLocaleDateString(undefined, { dateStyle: "medium" })}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-foreground">
+                        {h.score} / {h.total} ({h.pct}%)
+                      </span>
+                      <span
+                        className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold ${badgeColor}`}
+                      >
+                        {grade}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -857,10 +989,10 @@ function QuizResults({ score, total, results, difficulty, onRestart, onChangeDif
     pct >= 89 ? "A" : pct >= 78 ? "B" : pct >= 67 ? "C" : pct >= 56 ? "D" : "F";
   const gradeColor =
     pct >= 78
-      ? "text-emerald-600"
+      ? "text-emerald-600 dark:text-emerald-400"
       : pct >= 56
-      ? "text-amber-600"
-      : "text-red-600";
+      ? "text-amber-600 dark:text-amber-400"
+      : "text-red-600 dark:text-red-400";
   const diffLabel =
     DIFFICULTIES.find((d) => d.id === difficulty)?.label || difficulty;
 
@@ -903,8 +1035,8 @@ function QuizResults({ score, total, results, difficulty, onRestart, onChangeDif
               <span
                 className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                   r.correct
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-red-100 text-red-700"
+                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                    : "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300"
                 }`}
               >
                 {r.correct ? "✓" : "✗"}
@@ -914,7 +1046,7 @@ function QuizResults({ score, total, results, difficulty, onRestart, onChangeDif
               </span>
               <span
                 className={`text-xs font-medium ${
-                  r.correct ? "text-emerald-600" : "text-red-500"
+                  r.correct ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"
                 }`}
               >
                 {r.correct ? "Correct" : "Incorrect"}
@@ -968,7 +1100,12 @@ const ArabicQuiz = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answered, setAnswered] = useState(false);
   const [lastCorrect, setLastCorrect] = useState(null);
+  const [chosenOption, setChosenOption] = useState(null);
   const [results, setResults] = useState([]);
+
+  // Auto-advance states
+  const [timeLeft, setTimeLeft] = useState(4000);
+  const [isPaused, setIsPaused] = useState(false);
 
   const handleStart = (diff) => {
     const qs = getSessionQuestions(diff);
@@ -977,6 +1114,7 @@ const ArabicQuiz = () => {
     setCurrentIndex(0);
     setAnswered(false);
     setLastCorrect(null);
+    setChosenOption(null);
     setResults([]);
     setPhase("quiz");
   };
@@ -984,19 +1122,59 @@ const ArabicQuiz = () => {
   const handleAnswer = (correct, rawAnswer) => {
     const q = sessionQs[currentIndex];
     setLastCorrect(correct);
+    setChosenOption(rawAnswer);
     setAnswered(true);
     setResults((prev) => [...prev, { type: q.type, correct }]);
   };
 
   const handleNext = () => {
     if (currentIndex + 1 >= sessionQs.length) {
+      // Save current attempt to history in localStorage
+      const finalResults = [...results];
+      const score = finalResults.filter((r) => r.correct).length;
+      const newAttempt = {
+        date: new Date().toISOString(),
+        difficulty,
+        score,
+        total: sessionQs.length,
+        pct: Math.round((score / sessionQs.length) * 100),
+      };
+      try {
+        const prev = JSON.parse(localStorage.getItem("nq_quiz_history") || "[]");
+        localStorage.setItem("nq_quiz_history", JSON.stringify([newAttempt, ...prev].slice(0, 50)));
+      } catch (e) {
+        console.error("Failed to save history:", e);
+      }
       setPhase("results");
     } else {
       setCurrentIndex((i) => i + 1);
       setAnswered(false);
       setLastCorrect(null);
+      setChosenOption(null);
+      setTimeLeft(4000);
+      setIsPaused(false);
     }
   };
+
+  // Auto-advance Timer logic
+  useEffect(() => {
+    if (!answered || isPaused || phase !== "quiz") return;
+
+    const interval = 50; // tick every 50ms for smooth progress bar
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= interval) {
+          clearInterval(timer);
+          handleNext();
+          return 4000;
+        }
+        return prev - interval;
+      });
+    }, interval);
+
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answered, isPaused, currentIndex, phase, results]);
 
   const score = results.filter((r) => r.correct).length;
   const currentQ = sessionQs[currentIndex];
@@ -1069,16 +1247,20 @@ const ArabicQuiz = () => {
                 question={currentQ}
                 onAnswer={handleAnswer}
                 answered={answered}
+                chosenOption={chosenOption}
               />
             </div>
 
-            {/* Feedback */}
+            {/* Feedback & Auto-advance Bar */}
             {answered && (
               <FeedbackBox
                 correct={lastCorrect}
                 explanation={currentQ.explanation}
                 onNext={handleNext}
                 isLast={currentIndex + 1 >= sessionQs.length}
+                timeLeft={timeLeft}
+                isPaused={isPaused}
+                onPauseToggle={() => setIsPaused((p) => !p)}
               />
             )}
           </>
